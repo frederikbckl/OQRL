@@ -33,8 +33,7 @@ Save a `requirements.txt` file, so that other people can install all required de
 
 #### 📚 Libraries used:
 
-- [black](https://github.com/psf/black): Formatter
-- [isort](https://pycqa.github.io/isort/): Import Organizer
+- [ruff](https://pypi.org/project/ruff/): For linting, formatting and sorting imports
 - [pipreqs](https://pypi.org/project/pipreqs/): For creating the requirements file
 
 #### 🧰 Recommended VSCode Extensions:
@@ -44,6 +43,7 @@ Save a `requirements.txt` file, so that other people can install all required de
 - [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments): Color Coding for Comments. Automatically highlights comments with TODO in it.
 - [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens): Lets you view for every line when the code was committed and who wrote it.
 - [Remote Development](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack): Lets you easily connect to another machine remotely using SSH. Also a easy way to view and download files you created on the remote machine.
+- [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff): Extremely fast Python linter and code formatter. Can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more. 
 
 #### 💾 Working with git:
 
