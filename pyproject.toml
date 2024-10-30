@@ -1,9 +1,9 @@
-[tool.black]
-line-length = 99 # override black's default line-length
-
-[tool.isort]
-# make it compatible with black
-profile = "black"
+[tool.ruff]
+line-length = 99  
+lint.select = ["ALL", "E402"]  
+lint.ignore = ["D100"] 
+lint.extend-select = ["I"] 
+fix = true
 
 [tool.pyright]
 reportUnknownMemberType = "none"

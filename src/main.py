@@ -1,8 +1,8 @@
-"""Main python file"""
+"""Main python file."""
 
 
 def main():
-    """Main entrypoint of the program"""
+    """Main entrypoint of the program."""
     print("Hello World!")
 
 

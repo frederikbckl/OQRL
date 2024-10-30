@@ -4,6 +4,7 @@
     "zhuangtongfa.material-theme",
     "aaron-bond.better-comments",
     "eamodio.gitlens",
-    "ms-vscode-remote.vscode-remote-extensionpack"
+    "ms-vscode-remote.vscode-remote-extensionpack",
+    "charliermarsh.ruff",
   ]
 }

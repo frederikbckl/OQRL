@@ -1,3 +1,2 @@
-black==23.3.0
-isort==5.12.0
+ruff==0.7.0
 pipreqs==0.4.13
