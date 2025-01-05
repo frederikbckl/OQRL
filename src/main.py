@@ -4,8 +4,7 @@
 
 from agent import AgentFactory
 from dqn import DQN
-
-# from train import run_train
+from train import run_train
 
 
 def main() -> None:
@@ -15,7 +14,7 @@ def main() -> None:
     agent_fac = AgentFactory(DQN)  # Using DQN as the agent model
     num_epochs = 1000
     seed = 0
-    # run_train(agent_fac, env_name, num_epochs, seed)  # Start the training process
+    run_train(agent_fac, env_name, num_epochs, seed)  # Start the training process
 
 
 if __name__ == "__main__":
