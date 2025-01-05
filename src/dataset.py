@@ -1,0 +1,41 @@
+import h5py
+import numpy as np
+import torch
+from torch.utils.data import Dataset
+
+
+class HDF5Dataset(Dataset):
+    def __init__(self, file_path):
+        """Initialize the dataset by loading the HDF5 file.
+
+        Args: file_path (str): Path to the HDF5 file.
+        """
+        print("Hello __init__")
+        self.file_path = file_path
+        with h5py.File(self.file_path, "r") as f:
+            self.observations = np.array(f["observations"])
+            self.actions = np.array(f["actions"])
+            self.rewards = np.array(f["rewards"])
+            self.next_observations = np.array(f["next_observations"])
+            self.terminals = np.array(f["terminals"])
+
+    def __len__(self):
+        """Return the size of the dataset."""
+        print("Hello __len__")
+        return len(self.observations)
+
+    def __getitem__(self, idx):
+        """Return a single sample of data."""
+        print("Hello __getitem__")
+        observation = self.observations[idx]
+        action = self.actions[idx]
+        reward = self.rewards[idx]
+        next_observation = self.next_observations[idx]
+        terminal = self.terminals[idx]
+        return (
+            torch.tensor(observation, dtype=torch.float32),
+            torch.tensor(action, dtype=torch.long),
+            torch.tensor(reward, dtype=torch.float32),
+            torch.tensor(next_observation, dtype=torch.float32),
+            torch.tensor(terminal, dtype=torch.bool),
+        )
