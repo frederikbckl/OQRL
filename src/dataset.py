@@ -34,7 +34,9 @@ class HDF5Dataset(Dataset):
         terminal = self.terminals[idx]
         return (
             torch.tensor(observation, dtype=torch.float32),
-            torch.tensor(action, dtype=torch.long),
+            torch.tensor(
+                action, dtype=torch.long
+            ),  # actions are discrete in CartPole -> PyTorch requires the tensors to be torch.long
             torch.tensor(reward, dtype=torch.float32),
             torch.tensor(next_observation, dtype=torch.float32),
             torch.tensor(terminal, dtype=torch.bool),

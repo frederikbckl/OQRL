@@ -1,9 +1,9 @@
 """Simplified training module."""
 
 import gymnasium as gym
-from torch.utils.data import DataLoader
 
-from config import BATCH_SIZE
+# from torch.utils.data import DataLoader
+from dataset import HDF5Dataset
 
 
 def run_train(agent_fac, env_name, num_epochs, seed):
@@ -18,7 +18,7 @@ def run_train(agent_fac, env_name, num_epochs, seed):
         raise
 
     dataset = "offline_cartpole_test_v5.hdf5"
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+    dataloader = HDF5Dataset(dataset)
 
     # set up agent
     obs_space = env.observation_space  # get observation space
