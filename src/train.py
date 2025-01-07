@@ -2,13 +2,24 @@
 
 import gymnasium as gym
 
+from agent import AgentFactory
+
 # from torch.utils.data import DataLoader
 from dataset import HDF5Dataset
 
+# from dataset import RLDataset
+# experience import Experience
+from rng import initialize_rng
 
-def run_train(agent_fac, env_name, num_epochs, seed):
-    """Run a very basic training loop."""
-    # TODO: initialize rng / seed
+
+def run_train(
+    agent_fac: AgentFactory,
+    env_name: str,
+    num_epochs: int,
+    seed: int,
+) -> None:
+    """Run training for the given environment."""
+    rng = initialize_rng(seed)
 
     # set up environment and dataset
     try:
