@@ -8,7 +8,7 @@ from agent import AgentFactory
 from dataset import HDF5Dataset
 
 # from dataset import RLDataset
-# experience import Experience
+from experience import Experience
 from rng import initialize_rng
 
 
@@ -36,9 +36,34 @@ def run_train(
     act_space = env.action_space  # get action space
     agent = agent_fac.create(obs_space, act_space, seed)  # Create the agent instance
 
-    obs = env.reset()
-    action = agent.policy(obs)  # Assuming your agent's policy method is correctly implemented
-    print(env.step(action))  # This print statement is to debug what env.step returns
+    # Run training
+    for _ in range(num_epochs):
+        total_reward = 0.0
+        total_steps = 0
+        for (
+            states,
+            actions,
+            rewards,
+            next_states,
+            terminals,
+        ) in dataloader:  # left out timeouts due to testing
+            agent.update(
+                Experience(
+                    states,
+                    actions,
+                    rewards,
+                    next_states,
+                    terminals,
+                    {},
+                ),  # left out timeouts again
+            )
+            total_reward += rewards.sum().item()
+            total_steps += len(states)
+            agent.on_step_end()
+        agent.on_episode_end(
+            total_steps,
+            total_reward,
+        )
 
 
 # This updated version explicitly creates an agent from the factory before the training loop.
