@@ -64,6 +64,3 @@ def run_train(
             total_steps,
             total_reward,
         )
-
-
-# This updated version explicitly creates an agent from the factory before the training loop.
