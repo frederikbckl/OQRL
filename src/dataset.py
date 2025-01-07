@@ -10,7 +10,7 @@ class HDF5Dataset(Dataset):
 
         Args: file_path (str): Path to the HDF5 file.
         """
-        print("Hello __init__")
+        # print("Hello __init__")
         self.file_path = file_path
         with h5py.File(self.file_path, "r") as f:
             self.observations = np.array(f["observations"])
@@ -21,12 +21,12 @@ class HDF5Dataset(Dataset):
 
     def __len__(self):
         """Return the size of the dataset."""
-        print("Hello __len__")
+        # print("Hello __len__")
         return len(self.observations)
 
     def __getitem__(self, idx):
         """Return a single sample of data."""
-        print("Hello __getitem__")
+        # print("Hello __getitem__")
         observation = self.observations[idx]
         action = self.actions[idx]
         reward = self.rewards[idx]
@@ -35,7 +35,8 @@ class HDF5Dataset(Dataset):
         return (
             torch.tensor(observation, dtype=torch.float32),
             torch.tensor(
-                action, dtype=torch.long
+                action,
+                dtype=torch.long,
             ),  # actions are discrete in CartPole -> PyTorch requires the tensors to be torch.long
             torch.tensor(reward, dtype=torch.float32),
             torch.tensor(next_observation, dtype=torch.float32),
