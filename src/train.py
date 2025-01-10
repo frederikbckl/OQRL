@@ -56,7 +56,7 @@ def run_train(
             next_states,
             terminals,
         ) in dataloader:  # left out timeouts due to testing
-            print("Note: in training loop - dataloader")
+            # print("Agent weights before update:", agent.policy_net.state_dict())
             agent.update(
                 Experience(
                     states,
@@ -71,6 +71,7 @@ def run_train(
             total_steps += len(states)
             agent.on_step_end()
             print(f"Note: Training Loop - Step: {total_steps}")
+            # print("Agent weights after update:", agent.policy_net.state_dict())
 
         reward_history.append(total_reward)  # Save total reward for this epoch
         print(f"Epoch {epoch + 1} completed with total reward: {total_reward}")
