@@ -12,7 +12,7 @@ def main() -> None:
     print("Note: main started")
     env_name = "CartPole-v1"  # Setting environment to CartPole v1
     agent_fac = AgentFactory(DQN)  # Using DQN as the agent model
-    num_epochs = 1000
+    num_epochs = 5
     seed = 0
     print("Note: agent_fac, env_name, num_epochs, seed initialized")
     run_train(agent_fac, env_name, num_epochs, seed)  # Start the training process

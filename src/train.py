@@ -1,6 +1,7 @@
 """Simplified training module."""
 
 import gymnasium as gym
+import matplotlib.pyplot as plt
 
 from agent import AgentFactory
 
@@ -41,8 +42,10 @@ def run_train(
     agent = agent_fac.create(obs_space, act_space, rng)  # Create the agent instance
     print("Note: agent set up")
 
+    reward_history = []
+
     # Run training
-    for _ in range(num_epochs):
+    for epoch in range(num_epochs):
         print("Note: in training loop")
         total_reward = 0.0
         total_steps = 0
@@ -64,18 +67,23 @@ def run_train(
                     {},
                 ),  # left out timeouts again
             )
-            print("Note: in training loop - dataloader: finished agent.update")
             total_reward += rewards.sum().item()
             total_steps += len(states)
-            print("Note: in training loop - dataloader: updated reward and steps")
             agent.on_step_end()
-            print("Note: in training loop - dataloader: after on_step_end")
+            print(f"Note: Training Loop - Step: {total_steps}")
 
+        reward_history.append(total_reward)  # Save total reward for this epoch
+        print(f"Epoch {epoch + 1} completed with total reward: {total_reward}")
         agent.on_episode_end(
             total_steps,
             total_reward,
         )
-        print("Note: in training loop: after on_episode_end")
+
+    plt.plot(range(1, num_epochs + 1), reward_history)
+    plt.xlabel("Epoch")
+    plt.ylabel("Total Reward")
+    plt.title("Training Progress")
+    plt.show()
 
 
 # This updated version explicitly creates an agent from the factory before the training loop.
