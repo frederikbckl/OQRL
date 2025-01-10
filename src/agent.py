@@ -1,23 +1,55 @@
 """Simplified agent module."""
 
+from abc import ABC, abstractmethod
+from typing import Any
 
-class Agent:
+import torch
+from gymnasium import Space
+from numpy.random import Generator
+
+from experience import Experience
+from utils import get_act_dim, get_act_type, get_obs_dim
+
+
+class Agent(ABC):
     """Basic agent class."""
 
-    def __init__(self, obs_space, act_space, rng, device="cpu"):
-        """Initialize the agent with minimal settings."""
+    def __init__(
+        self,
+        obs_space: Space[Any],
+        act_space: Space[Any],
+        rng: Generator,
+        device: str = "cpu",
+    ) -> None:
+        """Initialize Agent."""
         self.obs_space = obs_space
         self.act_space = act_space
         self.rng = rng
-        self.device = device
 
-    def policy(self, obs):
-        """Placeholder for the policy to return an action."""
-        return self.act_space.sample()  # Simplified to just sample an action
+        self.obs_dim = get_obs_dim(self.obs_space)
+        self.act_dim = get_act_dim(self.act_space)
+        self.act_type = get_act_type(self.act_space)
+        self.device = torch.device(device)
+        self.step = 0
+        self.episode = 0
 
-    def update(self, exp):
-        """Placeholder for update method."""
-        pass  # No operation for now
+    @abstractmethod
+    def policy(self, obs: Any) -> Any:
+        """Return an action according to the current policy."""
+
+    @abstractmethod
+    def update(self, exp: Experience) -> None:
+        """Integrates the provided experience into the agent."""
+
+    def on_step_end(self) -> None:
+        """Call at the end of a step."""
+        self.step += 1
+
+    def on_episode_end(
+        self, ep_steps: int, ep_reward: float
+    ) -> None:  # ep_steps: int and ep_reward: float got removed
+        """Call at the end of an episode."""
+        self.episode += 1
 
 
 class AgentFactory:

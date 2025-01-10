@@ -34,7 +34,7 @@ def run_train(
     # set up agent
     obs_space = env.observation_space  # get observation space
     act_space = env.action_space  # get action space
-    agent = agent_fac.create(obs_space, act_space, seed)  # Create the agent instance
+    agent = agent_fac.create(obs_space, act_space, rng)  # Create the agent instance
 
     # Run training
     for _ in range(num_epochs):
