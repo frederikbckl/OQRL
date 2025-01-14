@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Type
 
+import numpy as np
+import torch
 from torch import Tensor, nn
 from torch.nn import Module
 
@@ -150,9 +152,20 @@ class DQN(Agent):
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net_update_method = target_net_update_method
 
-    def policy(self, obs):
-        """Simple policy to select an action."""
-        return self.act_space.sample()  # Simplified to just sample an action
+    def sample(self, obs: Any) -> Any:
+        """Sample in DQN."""
+        # Use exploration method
+        if self.exploration_method.should_explore():
+            return self.act_space.sample()
+        # Else use policy
+        return self.policy(obs)
+
+    def policy(self, obs: Any) -> Any:
+        """Define policy."""
+        with torch.no_grad():
+            self.policy_net.eval()
+            q_values = self.policy_net(torch.tensor(obs).to(self.device).unsqueeze(0)).squeeze()
+            return np.int_(q_values.cpu().argmax().numpy())
 
     def update(self, exp):
         """Placeholder for the update method."""

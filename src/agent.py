@@ -38,6 +38,10 @@ class Agent(ABC):
         """Return an action according to the current policy."""
 
     @abstractmethod
+    def sample(self, obs: Any) -> Any:
+        """Return an action according to the current policy with exploration."""
+
+    @abstractmethod
     def update(self, exp: Experience) -> None:
         """Integrates the provided experience into the agent."""
 
@@ -46,7 +50,9 @@ class Agent(ABC):
         self.step += 1
 
     def on_episode_end(
-        self, ep_steps: int, ep_reward: float
+        self,
+        ep_steps: int,
+        ep_reward: float,
     ) -> None:  # ep_steps: int and ep_reward: float got removed
         """Call at the end of an episode."""
         self.episode += 1
