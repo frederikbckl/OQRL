@@ -11,6 +11,7 @@ from torch.nn import Module
 
 from agent import Agent
 from experience import Experience
+from optim import SimulatedAnnealing
 from utils import EpsilonGreedy, ExplorationMethodFactory, ReplayMemory, ReplayMemoryFactory
 
 # add ModelUpdateMethod
@@ -174,6 +175,14 @@ class DQN(Agent):
         self.target_net = func_approx.create(self.obs_dim, self.act_dim).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net_update_method = target_net_update_method
+
+        # Optimizer and loss function
+        self.optimizer = SimulatedAnnealing(
+            self.policy_net.parameters(),
+            init_temp=1.0,
+            cooling_rate=0.999,
+            min_temp=0.1,
+        )  # optim.Adam(self.policy_net.parameters(), lr=self.alpha)
 
     def sample(self, obs: Any) -> Any:
         """Sample in DQN."""

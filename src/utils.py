@@ -134,14 +134,23 @@ class ReplayMemory:
             experience.terminated,
         )
 
+        print("Terminals type:", type(terminals))
+        print("Terminals content:", terminals)
+
         # Iterate over batch and save each experience individually
         for i in range(len(states)):  # Assumption: batch dimension is the first dimension
             single_experience = Experience(
                 states[i],
                 actions[i],
-                rewards[i],
+                rewards[i].item(),
+                # rewards[i].item()
+                # if isinstance(rewards[i], torch.Tensor)
+                # else rewards[i],  # Convert tensor to scalar
                 next_states[i],
                 terminals[i],
+                # bool(terminals[i])
+                # if isinstance(terminals[i], (torch.Tensor, np.generic))
+                # else terminals[i],
                 {},
             )
             self.memory.append(single_experience)
@@ -157,6 +166,25 @@ class ReplayMemory:
     def __len__(self):
         """Get memory length."""
         return len(self.memory)
+
+    # def __getitem__(self, idx):
+    #     """Return a single sample of data."""
+    #     # print("Hello __getitem__")
+    #     state = self.states[idx]
+    #     action = self.actions[idx]
+    #     reward = self.rewards[idx]
+    #     next_observation = self.next_observations[idx]
+    #     terminal = self.terminals[idx]
+    #     return (
+    #         torch.tensor(observation, dtype=torch.float32),
+    #         torch.tensor(
+    #             action,
+    #             dtype=torch.long,
+    #         ),  # actions are discrete in CartPole -> PyTorch requires the tensors to be torch.long
+    #         torch.tensor(reward, dtype=torch.float32),
+    #         torch.tensor(next_observation, dtype=torch.float32),
+    #         bool(terminal),
+    #     )
 
 
 class ReplayMemoryFactory:

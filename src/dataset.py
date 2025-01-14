@@ -16,6 +16,10 @@ class HDF5Dataset(Dataset):
             self.observations = np.array(f["observations"])
             self.actions = np.array(f["actions"])
             self.rewards = np.array(f["rewards"])
+            # Debug prints
+            print("Rewards type after loading from HDF5:", type(self.rewards))
+            print("Rewards shape after loading from HDF5:", self.rewards.shape)
+            print("First few rewards:", self.rewards[:5])  # Print a few sample values
             self.next_observations = np.array(f["next_observations"])
             self.terminals = np.array(f["terminals"])
 
@@ -32,6 +36,10 @@ class HDF5Dataset(Dataset):
         reward = self.rewards[idx]
         next_observation = self.next_observations[idx]
         terminal = self.terminals[idx]
+
+        # Debug prints
+        print(f"Reward at index {idx}: {reward}")
+
         return (
             torch.tensor(observation, dtype=torch.float32),
             torch.tensor(
