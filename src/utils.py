@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import deque
 from enum import Enum
 from typing import Any, Dict, Type
 
@@ -6,6 +7,8 @@ import numpy as np
 from gymnasium import Space
 from gymnasium.spaces import Box, Dict, Discrete
 from numpy.random import Generator
+
+from experience import Experience
 
 
 class ActionType(Enum):
@@ -110,3 +113,60 @@ class ExplorationMethodFactory:
     def create(self, rng: Generator):
         """Create a loss instance."""
         return self.class_obj(rng, *self.args, **self.kwargs)
+
+
+class ReplayMemory:
+    """Memory with silding window that holds Experiences."""
+
+    def __init__(self, rng: Generator, capacity: int) -> None:
+        """Initialize ReplayMemory."""
+        self.rng = rng
+        self.memory = deque([], maxlen=capacity)
+
+    def push(self, experience: Experience):
+        """Add a experience to the memory."""
+        # Extract batch data
+        states, actions, rewards, next_states, terminals = (
+            experience.obs,
+            experience.action,
+            experience.reward,
+            experience.next_obs,
+            experience.terminated,
+        )
+
+        # Iterate over batch and save each experience individually
+        for i in range(len(states)):  # Assumption: batch dimension is the first dimension
+            single_experience = Experience(
+                states[i],
+                actions[i],
+                rewards[i],
+                next_states[i],
+                terminals[i],
+                {},
+            )
+            self.memory.append(single_experience)
+
+    def sample(self, batch_size: int):
+        """Sample a batchs of experiences from the memory."""
+        return self.rng.choice(np.asarray(self.memory, dtype=object), batch_size)
+
+    def get_capacity(self):
+        """Get memory capacity."""
+        return self.memory.maxlen
+
+    def __len__(self):
+        """Get memory length."""
+        return len(self.memory)
+
+
+class ReplayMemoryFactory:
+    """Replay memory factory."""
+
+    def __init__(self, class_obj: Type[ReplayMemory], **kwargs: Any) -> None:
+        """Initialize ReplayMemoryFactory."""
+        self.class_obj = class_obj
+        self.kwargs = kwargs
+
+    def create(self, rng: Any, capacity: int, **options: Any) -> ReplayMemory:
+        """Create a optimizer instance."""
+        return self.class_obj(rng, capacity, **self.kwargs, **options)

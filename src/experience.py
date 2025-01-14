@@ -8,6 +8,6 @@ class Experience(NamedTuple):
     action: Any
     reward: Any
     next_obs: Any
-    terminated: bool
+    terminated: Any  # previously bool
     # truncated: bool
     info: Dict[str, Any]

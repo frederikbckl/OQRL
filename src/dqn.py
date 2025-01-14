@@ -1,5 +1,6 @@
 """Simplified DQN module."""
 
+import functools
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Type
 
@@ -9,7 +10,8 @@ from torch import Tensor, nn
 from torch.nn import Module
 
 from agent import Agent
-from utils import EpsilonGreedy, ExplorationMethodFactory
+from experience import Experience
+from utils import EpsilonGreedy, ExplorationMethodFactory, ReplayMemory, ReplayMemoryFactory
 
 # add ModelUpdateMethod
 # add ValueModuleFactory
@@ -129,7 +131,12 @@ class DQN(Agent):
         rng,
         device="cpu",
         func_approx: ValueModuleFactory = ValueModuleFactory(ValueModule),
+        memory: ReplayMemoryFactory = ReplayMemoryFactory(ReplayMemory),
         exploration_method: ExplorationMethodFactory = ExplorationMethodFactory(EpsilonGreedy),
+        capacity: int = 50000,
+        batch_size: int = 64,
+        learning_iterations: int = 1,
+        learn_every: int = 1,
         target_net_update_method: ModelUpdateMethod = SoftUpdate(),
     ):
         """Initialize basic settings for DQN."""
@@ -141,8 +148,24 @@ class DQN(Agent):
         # self.step = 0
         # self.episode = 0
 
+        if capacity < batch_size:
+            raise ValueError("Capacity cannot be greater than batch size.")
+
+        if learn_every <= 0:
+            raise ValueError("Steps between each learning iteration must be at least 1.")
+
+        # add alpha / gamma if needed
+
+        # How often to learn
+        self.learn_every = learn_every
+        self.learn_iterations = learning_iterations
+
         # Exploration method
         self.exploration_method = exploration_method.create(rng)
+
+        # Replay Memory
+        self.memory = memory.create(rng, capacity)
+        self.batch_size = batch_size
 
         # DNN's
         self.policy_net = func_approx.create(self.obs_dim, self.act_dim).to(self.device)
@@ -167,9 +190,39 @@ class DQN(Agent):
             q_values = self.policy_net(torch.tensor(obs).to(self.device).unsqueeze(0)).squeeze()
             return np.int_(q_values.cpu().argmax().numpy())
 
-    def update(self, exp):
-        """Placeholder for the update method."""
-        # No operation for now
+    def update(self, exp: Experience) -> None:
+        """Save experience and update target net."""
+        # Save experience in memory
+
+        self.memory.push(exp)
+
+        # Learn from memory
+        if len(self.memory) < self.batch_size:
+            return  # early exit if replay memory does not have batch_size
+
+        if self.step % self.learn_every == 0:  # updates policy network every self.learn_every
+            for _ in range(self.learn_iterations):  # repeats for self.learn_iterations steps
+                batch = self.memory.sample(
+                    self.batch_size,
+                )  # sample batch of experiences from ReplayMemory
+                batch = [
+                    entry[:-1] for entry in batch
+                ]  # remove additional info (not needed for training)
+                experiences = [
+                    torch.tensor(np.asarray(e)).to(self.device) for e in zip(*batch)
+                ]  # converts batch into PyTorch tensors and transfers to device
+                self.optimizer.step(
+                    functools.partial(self.criterion, experiences),
+                )  # loss function (criterion) is applied to sampled experiences + optimizer adjusts weights
+
+        # Update target net
+        if self.target_net_update_method.should_update():
+            self.target_net.load_state_dict(
+                self.target_net_update_method.get_updated_state_dict(
+                    self.policy_net,
+                    self.target_net,
+                ),
+            )
 
     def on_step_end(self) -> None:
         """Increase step variable."""
