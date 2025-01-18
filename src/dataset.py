@@ -38,7 +38,7 @@ class HDF5Dataset(Dataset):
         terminal = self.terminals[idx]
 
         # Debug prints
-        print(f"Reward at index {idx}: {reward}")
+        # print(f"Reward at index {idx}: {reward}")
 
         return (
             torch.tensor(observation, dtype=torch.float32),

@@ -1,5 +1,6 @@
 """Simplified DQN module."""
 
+import functools
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Type
 
@@ -219,9 +220,9 @@ class DQN(Agent):
                 experiences = [
                     torch.tensor(np.asarray(e)).to(self.device) for e in zip(*batch)
                 ]  # converts batch into PyTorch tensors and transfers to device
-                # self.optimizer.step(
-                # functools.partial(self.criterion, experiences),
-                # )  # loss function (criterion) is applied to sampled experiences + optimizer adjusts weights
+                self.optimizer.step(
+                    functools.partial(self.criterion, experiences),
+                )  # loss function (criterion) is applied to sampled experiences + optimizer adjusts weights
 
         # Update target net
         if self.target_net_update_method.should_update():

@@ -70,7 +70,7 @@ def run_train(
             total_reward += rewards.sum().item()
             total_steps += len(states)
             agent.on_step_end()
-            print(f"Note: Training Loop - Step: {total_steps}")
+            # print(f"Note: Training Loop - Step: {total_steps}")
             # print("Agent weights after update:", agent.policy_net.state_dict())
 
         reward_history.append(total_reward)  # Save total reward for this epoch
