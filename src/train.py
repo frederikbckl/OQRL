@@ -32,7 +32,7 @@ def run_train(
         raise
     print("Note: created environment")
 
-    dataset = "offline_cartpole_test_v5_1.hdf5"
+    dataset = "offline_cartpole_v2.hdf5"
     dataloader = HDF5Dataset(dataset)
     print("Note: dataset set up")
 
