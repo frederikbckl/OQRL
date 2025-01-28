@@ -1,126 +1,97 @@
-"""Simplified training module."""
+import numpy as np
+import pennylane as qml
+import torch
+from torch import nn, optim
 
-import gymnasium as gym
-import matplotlib.pyplot as plt
-
-from agent import AgentFactory
-
-# from torch.utils.data import DataLoader
-from dataset import HDF5Dataset
-
-# from dataset import RLDataset
-from experience import Experience
-from rng import initialize_rng
 from utils import ReplayMemory
 
 
-def run_train(
-    agent_fac: AgentFactory,
-    env_name: str,
-    num_epochs: int,
-    seed: int,
-) -> None:
-    """Run training for the given environment."""
-    print("Note: run_train started")
-    rng = initialize_rng(seed)
-    print("Note: initialized rng")
+class VQC(nn.Module):
+    """Variational Quantum Circuit implemented using PennyLane."""
 
-    # set up replay memory
-    memory_capacity = 10000  # assuming we have a capacity defined or pass it as a parameter
-    replay_memory = ReplayMemory(rng, memory_capacity)
+    def __init__(self, input_dim, output_dim, n_layers=2):
+        super().__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.n_layers = n_layers
+        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 2, requires_grad=True))
+        self.device = torch.device("cpu")
 
-    # set up environment and dataset
-    try:
-        env = gym.make(env_name)
-    except Exception as e:
-        print(f"Failed to create environment {env_name}: {e}")
-        raise
-    print("Note: created environment")
+        self.dev = qml.device("default.qubit", wires=input_dim)
+        self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
-    dataset = "offline_cartpole_v2.hdf5"
-    dataloader = HDF5Dataset(dataset)
-    print("Note: dataset set up")
-
-    # set up agent
-    obs_space = env.observation_space  # get observation space
-    act_space = env.action_space  # get action space
-    agent = agent_fac.create(obs_space, act_space, rng)  # Create the agent instance
-    print("Note: agent set up")
-
-    reward_history = []
-
-    # Run training
-    for epoch in range(num_epochs):
-        print("Note: in training loop")
-        total_reward = 0.0
-        total_steps = 0
-        for (
-            states,
-            actions,
-            rewards,
-            next_states,
-            terminals,
-        ) in dataloader:  # left out timeouts due to testing
-            print("Note: in dataloader loop")
-            print(
-                "States type:",
-                type(states),
-                "Length:",
-                len(states) if hasattr(states, "__len__") else "Not iterable",
-            )
-            print("Actions type:", type(actions))
-            print("Rewards type:", type(rewards))
-            print("Terminals type:", type(terminals))
-
-            # Add the experience to the replay memory
-            for i in range(len(states)):  # Assuming batch size is iterable
-                # Extract reward directly without indexing
-                reward = rewards  # No [i] because it's a scalar tensor
-                # if isinstance(reward, torch.Tensor):
-                #     reward = reward.item()  # Convert tensor to scalar (handles 0-dim tensor)
-                terminated = terminals  # No [i] because it's a scalar tensor
-
-                # Push experience to replay memory
-                replay_memory.push(
-                    Experience(
-                        obs=states[i],
-                        action=actions[i],
-                        reward=reward,  # Use the processed reward
-                        next_obs=next_states[i],
-                        terminated=terminated,  # Test: No [i] because it's a scalar tensor
-                        info={},  # Add empty dictionary for the info argument
-                    ),
-                )
-            # Perform updates, etc. (already exists in your code)
-            # print("Agent weights before update:", agent.policy_net.state_dict())
-            agent.update(
-                Experience(
-                    states,
-                    actions,
-                    rewards,
-                    next_states,
-                    terminals,
-                    {},
-                ),  # left out timeouts again
-            )
-            total_reward += rewards.sum().item()
-            total_steps += len(states)
-            agent.on_step_end()
-            # print(f"Note: Training Loop - Step: {total_steps}")
-            # print("Agent weights after update:", agent.policy_net.state_dict())
-
-        reward_history.append(total_reward)  # Save total reward for this epoch
-        print(f"Epoch {epoch + 1} completed with total reward: {total_reward}")
-        agent.on_episode_end(
-            total_steps,
-            total_reward,
+    def _circuit(self, inputs, weights):
+        qml.AngleEmbedding(inputs, wires=range(self.input_dim))
+        qml.StronglyEntanglingLayers(
+            weights.reshape(self.n_layers, self.input_dim, 2),
+            wires=range(self.input_dim),
         )
+        return [qml.expval(qml.PauliZ(i)) for i in range(self.output_dim)]
 
-    plt.plot(range(1, num_epochs + 1), reward_history)
-    plt.xlabel("Epoch")
-    plt.ylabel("Total Reward")
-    plt.title("Training Progress")
-    plt.show()
+    def forward(self, x):
+        outputs = []
+        for sample in x:
+            outputs.append(self.qnode(sample, self.params))
+        return torch.stack(outputs)
 
 
-# This updated version explicitly creates an agent from the factory before the training loop.
+class DQNAgent:
+    """Deep Q-Learning Agent with VQC."""
+
+    def __init__(
+        self,
+        obs_dim,
+        act_dim,
+        learning_rate,
+        gamma,
+        replay_capacity,
+        batch_size,
+        vqc_layers=2,
+    ):
+        self.obs_dim = obs_dim
+        self.act_dim = act_dim
+        self.gamma = gamma
+        self.batch_size = batch_size
+
+        # Initialize VQC policy network
+        self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
+        self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
+        self.loss_fn = nn.MSELoss()
+
+        # Replay memory
+        self.memory = ReplayMemory(replay_capacity)
+
+    def act(self, state, epsilon=0.1):
+        """Select an action using epsilon-greedy policy."""
+        if np.random.rand() < epsilon:
+            return np.random.randint(self.act_dim)
+        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+        with torch.no_grad():
+            q_values = self.policy_net(state_tensor)
+        return q_values.argmax().item()
+
+    def update(self):
+        """Update the policy network using a batch of experiences."""
+        if len(self.memory) < self.batch_size:
+            return
+
+        batch = self.memory.sample(self.batch_size)
+        states, actions, rewards, next_states, terminals = map(torch.stack, zip(*batch))
+
+        # Compute Q-values
+        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
+        next_q_values = self.target_net(next_states).max(1)[0]
+        targets = rewards + (1 - terminals) * self.gamma * next_q_values
+
+        # Update
+        loss = self.loss_fn(q_values, targets.detach())
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+    def update_target(self):
+        """Update the target network."""
+        self.target_net.load_state_dict(self.policy_net.state_dict())

@@ -1,21 +1,30 @@
-"""Main python file for offline quantum reinforcement learning PoC."""
+"""Main entrypoint for Offline Quantum Reinforcement Learning PoC."""
 
-# import numpy as np
-
-from agent import AgentFactory
-from dqn import DQN
+from agent import DQNAgent
 from train import run_train
 
+# import gymnasium as gym
 
-def main() -> None:
-    """Initialize the Main entrypoint of the program."""
-    print("Note: main started")
-    env_name = "CartPole-v1"  # Setting environment to CartPole v1
-    agent_fac = AgentFactory(DQN)  # Using DQN as the agent model
+
+def main():
+    """Main function to initialize and start training."""
+    env_name = "CartPole-v1"
     num_epochs = 5
-    seed = 0
-    print("Note: agent_fac, env_name, num_epochs, seed initialized")
-    run_train(agent_fac, env_name, num_epochs, seed)  # Start the training process
+    seed = 42
+
+    # Initialize the agent
+    agent = DQNAgent(
+        obs_dim=4,
+        act_dim=2,
+        learning_rate=0.001,
+        gamma=0.99,
+        replay_capacity=10000,
+        batch_size=64,
+        vqc_layers=2,
+    )
+
+    # Start training
+    run_train(agent, env_name, num_epochs, seed)
 
 
 if __name__ == "__main__":
