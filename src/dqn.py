@@ -2,7 +2,7 @@
 
 import functools
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 import numpy as np
 import torch
@@ -134,6 +134,8 @@ class DQN(Agent):
         func_approx: ValueModuleFactory = ValueModuleFactory(ValueModule),
         memory: ReplayMemoryFactory = ReplayMemoryFactory(ReplayMemory),
         exploration_method: ExplorationMethodFactory = ExplorationMethodFactory(EpsilonGreedy),
+        alpha: float = 1e-3,
+        gamma: float = 0.9,
         capacity: int = 50000,
         batch_size: int = 64,
         learning_iterations: int = 1,
@@ -156,6 +158,8 @@ class DQN(Agent):
             raise ValueError("Steps between each learning iteration must be at least 1.")
 
         # add alpha / gamma if needed
+        self.alpha = alpha
+        self.gamma = gamma
 
         # How often to learn
         self.learn_every = learn_every
@@ -203,7 +207,7 @@ class DQN(Agent):
         """Save experience and update target net."""
         # Save experience in memory
 
-        # self.memory.push(exp)
+        self.memory.push(exp)
 
         # Learn from memory
         if len(self.memory) < self.batch_size:
@@ -232,6 +236,53 @@ class DQN(Agent):
                     self.target_net,
                 ),
             )
+
+    def criterion(self, exp: List[Tensor]) -> float:
+        """Update the policy network using the given experience."""
+        self.policy_net.train()
+        self.target_net.eval()
+
+        states, actions, rewards, next_states, terminateds = exp  # testweise truncateds entfernt
+
+        terminals = terminateds  # truncateds
+
+        # old line of code
+        q_values: Tensor = (
+            self.policy_net(states).gather(1, actions.type(torch.int64).unsqueeze(1)).squeeze()
+        )
+
+        # Get non-terminal states and their indices
+
+        # new add, can be removed if approach to make it run is false
+        terminals = terminals.to(torch.bool)  # added
+
+        non_terminal_mask = ~terminals
+        non_terminal_next_states = next_states[non_terminal_mask]
+
+        # Compute next state values only for non-terminal states
+        next_state_values = torch.zeros(self.batch_size).to(self.device)
+        next_state_values[non_terminal_mask] = (
+            self.target_net(non_terminal_next_states).max(1)[0].detach()
+        )
+
+        target_q_values = (
+            rewards.float() + (1.0 - terminals.float()) * self.gamma * next_state_values
+        )
+
+        # loss = self.criterion(target_q_values, q_values)
+        # self.optimizer.zero_grad()
+        # loss.backward()
+
+        # Quick fix for unstable training, avoid taking to large steps in wrong direction
+        # if self.clip_grads:
+        #     nn.utils.clip_grad_norm_(self.policy_net.parameters(), self.clip_value)
+
+        # self.optimizer.step()
+
+        td_error = target_q_values - q_values
+        loss = torch.mean(td_error**2).item()
+
+        return loss
 
     def on_step_end(self) -> None:
         """Increase step variable."""

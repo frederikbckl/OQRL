@@ -139,10 +139,12 @@ class ReplayMemory:
 
         # Iterate over batch and save each experience individually
         for i in range(len(states)):  # Assumption: batch dimension is the first dimension
+            print(f"Rewards shape: {rewards.shape}, type: {type(rewards)}")
             single_experience = Experience(
                 states[i],
                 actions[i],
-                rewards[i].item(),
+                rewards[i],
+                # rewards[i].item(),
                 # rewards[i].item()
                 # if isinstance(rewards[i], torch.Tensor)
                 # else rewards[i],  # Convert tensor to scalar
