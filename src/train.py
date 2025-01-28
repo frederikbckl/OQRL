@@ -11,6 +11,7 @@ from dataset import HDF5Dataset
 # from dataset import RLDataset
 from experience import Experience
 from rng import initialize_rng
+from utils import ReplayMemory
 
 
 def run_train(
@@ -23,6 +24,10 @@ def run_train(
     print("Note: run_train started")
     rng = initialize_rng(seed)
     print("Note: initialized rng")
+
+    # set up replay memory
+    memory_capacity = 10000  # assuming we have a capacity defined or pass it as a parameter
+    replay_memory = ReplayMemory(rng, memory_capacity)
 
     # set up environment and dataset
     try:
@@ -56,6 +61,37 @@ def run_train(
             next_states,
             terminals,
         ) in dataloader:  # left out timeouts due to testing
+            print("Note: in dataloader loop")
+            print(
+                "States type:",
+                type(states),
+                "Length:",
+                len(states) if hasattr(states, "__len__") else "Not iterable",
+            )
+            print("Actions type:", type(actions))
+            print("Rewards type:", type(rewards))
+            print("Terminals type:", type(terminals))
+
+            # Add the experience to the replay memory
+            for i in range(len(states)):  # Assuming batch size is iterable
+                # Extract reward directly without indexing
+                reward = rewards  # No [i] because it's a scalar tensor
+                # if isinstance(reward, torch.Tensor):
+                #     reward = reward.item()  # Convert tensor to scalar (handles 0-dim tensor)
+                terminated = terminals  # No [i] because it's a scalar tensor
+
+                # Push experience to replay memory
+                replay_memory.push(
+                    Experience(
+                        obs=states[i],
+                        action=actions[i],
+                        reward=reward,  # Use the processed reward
+                        next_obs=next_states[i],
+                        terminated=terminated,  # Test: No [i] because it's a scalar tensor
+                        info={},  # Add empty dictionary for the info argument
+                    ),
+                )
+            # Perform updates, etc. (already exists in your code)
             # print("Agent weights before update:", agent.policy_net.state_dict())
             agent.update(
                 Experience(

@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any, Dict, Type
 
 import numpy as np
+import torch
 from gymnasium import Space
 from gymnasium.spaces import Box, Dict, Discrete
 from numpy.random import Generator
@@ -124,7 +125,7 @@ class ReplayMemory:
         self.memory = deque([], maxlen=capacity)
 
     def push(self, experience: Experience):
-        """Add a experience to the memory."""
+        """Add an experience to the memory."""
         # Extract batch data
         states, actions, rewards, next_states, terminals = (
             experience.obs,
@@ -134,26 +135,29 @@ class ReplayMemory:
             experience.terminated,
         )
 
-        print("Terminals type:", type(terminals))
-        print("Terminals content:", terminals)
+        print("Rewards type:", type(rewards), "Rewards shape:", getattr(rewards, "shape", None))
+        print("Terminals type:", type(terminals), "Terminals content:", terminals)
 
         # Iterate over batch and save each experience individually
         for i in range(len(states)):  # Assumption: batch dimension is the first dimension
-            print(f"Rewards shape: {rewards.shape}, type: {type(rewards)}")
+            # Convert reward to a scalar
+            reward = rewards  # No [i] because it's a scalar tensor
+            if isinstance(reward, torch.Tensor):
+                reward = reward.item()  # Convert tensor to scalar (handles 0-dim tensor)
+
+            # Convert terminal to boolean
+            terminal = terminals  # Test: No [i] because it's a scalar tensor
+            if isinstance(terminal, (np.ndarray, np.generic)) or hasattr(terminal, "item"):
+                terminal = bool(terminal)
+
+            # Create and append single experience
             single_experience = Experience(
                 states[i],
                 actions[i],
-                rewards[i],
-                # rewards[i].item(),
-                # rewards[i].item()
-                # if isinstance(rewards[i], torch.Tensor)
-                # else rewards[i],  # Convert tensor to scalar
+                reward,
                 next_states[i],
-                terminals[i],
-                # bool(terminals[i])
-                # if isinstance(terminals[i], (torch.Tensor, np.generic))
-                # else terminals[i],
-                {},
+                terminal,
+                {},  # Additional info
             )
             self.memory.append(single_experience)
 
