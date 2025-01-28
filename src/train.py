@@ -1,9 +1,39 @@
+"""Training module for simplified Offline QRL."""
+
+import gymnasium as gym
 import numpy as np
 import pennylane as qml
 import torch
 from torch import nn, optim
 
+from dataset import HDF5Dataset
 from utils import ReplayMemory
+
+
+def run_train(agent_fac, env_name, num_epochs, dataset_path):
+    """Run training for the given environment."""
+    # Initialize environment
+    env = gym.make(env_name)
+    obs_space = env.observation_space
+    act_space = env.action_space
+
+    # Initialize agent
+    agent = agent_fac.create(obs_space, act_space)
+
+    # Load dataset
+    dataset = HDF5Dataset(dataset_path)
+    reward_history = []
+
+    # Training loop
+    for epoch in range(num_epochs):
+        total_reward = 0.0
+        for obs, action, reward, next_obs, terminal in dataset:
+            agent.update(obs, action, reward, next_obs, terminal)
+            total_reward += reward
+        reward_history.append(total_reward)
+        print(f"Epoch {epoch + 1}/{num_epochs}, Total Reward: {total_reward}")
+
+    print("Training completed.")
 
 
 class VQC(nn.Module):
