@@ -43,15 +43,27 @@ def run_train(env_name, num_epochs, seed):
         num_steps = dataset.size  # Assuming OfflineDataset has a `.size` attribute
         log_interval = max(1, num_steps // 20)  # Log every 5% of progress
 
-        for step, (state, action, reward, next_state, terminated) in enumerate(dataset):
+        total_samples = dataset.size
+        for idx, (state, action, reward, next_state, terminated) in enumerate(dataset):
+            # Progress log every 5% (idx = step number)
+            if idx % (total_samples // 20) == 0:  # 5% increments
+                print(
+                    f"Processing sample {idx}/{total_samples} ({(idx / total_samples) * 100:.1f}%)",
+                )
+
             agent.memory.push(Experience(state, action, reward, next_state, terminated))
             agent.update()
-            epoch_reward += reward
 
-            # Log progress every 5% or at the last step
-            if (step + 1) % log_interval == 0 or (step + 1) == num_steps:
-                percentage_done = ((step + 1) / num_steps) * 100
-                print(f"Epoch {epoch + 1}/{num_epochs}: {percentage_done:.1f}% done")
+        # for step, (state, action, reward, next_state, terminated) in enumerate(dataset):
+        #     print("Processing sample")
+        #     agent.memory.push(Experience(state, action, reward, next_state, terminated))
+        #     agent.update()
+        #     epoch_reward += reward
+
+        #     # Log progress every 5% or at the last step
+        #     if (step + 1) % log_interval == 0 or (step + 1) == num_steps:
+        #         percentage_done = ((step + 1) / num_steps) * 100
+        #         print(f"Epoch {epoch + 1}/{num_epochs}: {percentage_done:.1f}% done")
 
         reward_history.append(epoch_reward)
         print(f"Epoch {epoch + 1}/{num_epochs} completed. Epoch Reward = {epoch_reward}")

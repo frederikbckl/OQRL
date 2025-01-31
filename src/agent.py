@@ -37,6 +37,7 @@ class VQC(nn.Module):
         return [qml.expval(qml.PauliZ(i)) for i in range(self.output_dim)]
 
     def forward(self, x):
+        # print(f"RunningVQC forward pass for batch of size {len(x)}")
         outputs = []
         for sample in x:
             # Ensure the output is a PyTorch tensor
