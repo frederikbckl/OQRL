@@ -8,12 +8,15 @@ class OfflineDataset:
     def __init__(self, file_path):
         """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
-        # Remove extra dimensions using np.squeeze
-        self.observations = np.squeeze(self.file["observations"], axis=1)  # Shape (174700, 4)
-        self.actions = np.squeeze(self.file["actions"], axis=(1, 2))  # Shape (174700,)
+        # Convert to NumPy arrays and remove extra dimensions using np.squeeze
+        self.observations = np.squeeze(
+            np.array(self.file["observations"]),
+            axis=1,
+        )  # Shape (174700, 4)
+        self.actions = np.squeeze(np.array(self.file["actions"]), axis=(1, 2))  # Shape (174700,)
         self.rewards = np.array(self.file["rewards"])  # Already 1D, no need for squeeze
         self.next_observations = np.squeeze(
-            self.file["next_observations"],
+            np.array(self.file["next_observations"]),
             axis=1,
         )  # Shape (174700, 4)
         self.terminals = np.array(self.file["terminals"])  # Already 1D, no need for squeeze
