@@ -81,7 +81,13 @@ class DQNAgent:
             return
 
         batch = self.memory.sample(self.batch_size)
-        states, actions, rewards, next_states, terminals = map(torch.stack, zip(*batch))
+
+        # Unpack Experience objects
+        states = torch.stack([exp.obs for exp in batch])
+        actions = torch.stack([exp.action for exp in batch])
+        rewards = torch.stack([exp.reward for exp in batch])
+        next_states = torch.stack([exp.next_obs for exp in batch])
+        terminals = torch.stack([exp.terminated for exp in batch])
 
         # Compute Q-values
         q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()

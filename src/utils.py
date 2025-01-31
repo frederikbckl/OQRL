@@ -21,7 +21,7 @@ class ReplayMemory:
     def __init__(self, capacity):
         self.memory = deque(maxlen=capacity)
 
-    def push(self, experience):
+    def push(self, experience: Experience):
         self.memory.append(experience)
 
     def sample(self, batch_size):
