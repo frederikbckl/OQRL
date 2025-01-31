@@ -25,8 +25,8 @@ class VQC(nn.Module):
     def _circuit(self, inputs, weights):
         """Define the quantum circuit."""
         # Ensure the weights tensor has the correct shape
-        print("Initial weights shape:", weights.shape)
-        print("Expected shape:", (self.n_layers, self.input_dim, 3))
+        # print("Initial weights shape:", weights.shape)
+        # print("Expected shape:", (self.n_layers, self.input_dim, 3))
         reshaped_weights = weights.reshape(
             self.n_layers,
             self.input_dim,
@@ -100,16 +100,23 @@ class DQNAgent:
         next_states = torch.stack([exp.next_obs for exp in batch])
         terminals = torch.stack([exp.terminated for exp in batch])
 
-        # Compute Q-values
+        # Compute Q-values (no gradients required)
         q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
         next_q_values = self.target_net(next_states).max(1)[0]
         targets = rewards + (1 - terminals) * self.gamma * next_q_values
 
-        # Update
-        loss = self.loss_fn(q_values, targets.detach())
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        # Simulated Annealing optimization
+        def loss_fn():
+            return torch.mean((q_values - targets) ** 2).item()
+
+        # perform simlated annealin step
+        self.optimizer.step(loss_fn)
+
+        # Update (old)
+        # loss = self.loss_fn(q_values, targets.detach())
+        # self.optimizer.zero_grad()
+        # loss.backward()
+        # self.optimizer.step()
 
     def update_target(self):
         """Update the target network."""
