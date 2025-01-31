@@ -6,14 +6,37 @@ class OfflineDataset:
     """Offline Dataset for loading pre-collected transitions."""
 
     def __init__(self, file_path):
+        """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
+        # Remove extra dimensions using np.squeeze
+        self.observations = np.squeeze(self.file["observations"], axis=1)  # Shape (174700, 4)
+        self.actions = np.squeeze(self.file["actions"], axis=(1, 2))  # Shape (174700,)
+        self.rewards = np.array(self.file["rewards"])  # Already 1D, no need for squeeze
+        self.next_observations = np.squeeze(
+            self.file["next_observations"],
+            axis=1,
+        )  # Shape (174700, 4)
+        self.terminals = np.array(self.file["terminals"])  # Already 1D, no need for squeeze
+        self.size = len(self.observations)
+
+    def __iter__(self):
+        """Make the dataset iterable."""
+        for i in range(self.size):
+            yield (
+                self.observations[i],
+                self.actions[i],
+                self.rewards[i],
+                self.next_observations[i],
+                self.terminals[i],
+            )
 
     def get_batch(self, batch_size):
-        indices = np.random.randint(0, len(self.file["observations"]), size=batch_size)
+        """Get a random batch of data."""
+        indices = np.random.randint(0, self.size, size=batch_size)
         return (
-            self.file["observations"][indices],
-            self.file["actions"][indices],
-            self.file["rewards"][indices],
-            self.file["next_observations"][indices],
-            self.file["terminals"][indices],
+            self.observations[indices],
+            self.actions[indices],
+            self.rewards[indices],
+            self.next_observations[indices],
+            self.terminals[indices],
         )

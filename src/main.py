@@ -10,7 +10,7 @@ def main():
     """Main function to initialize and start training."""
     env_name = "CartPole-v1"
     num_epochs = 5
-    seed = 42
+    seed = 0
 
     # Initialize the agent
     agent = DQNAgent(
@@ -24,7 +24,7 @@ def main():
     )
 
     # Start training
-    run_train(agent, env_name, num_epochs, seed)
+    run_train(env_name, num_epochs, seed)
 
 
 if __name__ == "__main__":
