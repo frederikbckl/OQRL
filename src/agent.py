@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pennylane as qml
 import torch
@@ -40,12 +42,15 @@ class VQC(nn.Module):
         # print(f"RunningVQC forward pass for batch of size {len(x)}")
         outputs = []
         for sample in x:
+            start_time = time.time()
             # Ensure the output is a PyTorch tensor
             result = self.qnode(sample, self.params)
             result_tensor = (
                 torch.tensor(result) if not isinstance(result, torch.Tensor) else result
             )
             outputs.append(result_tensor)
+            print(f"VQC forward pass took {time.time() - start_time:.2f} seconds")
+
         return torch.stack(outputs)
 
 
@@ -103,7 +108,10 @@ class DQNAgent:
 
         # Compute Q-values (no gradients required)
         q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
-        next_q_values = self.target_net(next_states).max(1)[0]
+
+        # Cache target network values if required repeatedly
+        with torch.no_grad():  # No gradients needed for target values
+            next_q_values = self.target_net(next_states).max(1)[0]
         targets = rewards + (1 - terminals) * self.gamma * next_q_values
 
         # Simulated Annealing optimization
