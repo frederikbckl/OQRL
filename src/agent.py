@@ -16,24 +16,35 @@ class VQC(nn.Module):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
-        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 2, requires_grad=True))
+        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3, requires_grad=True))
         self.device = torch.device("cpu")
 
         self.dev = qml.device("default.qubit", wires=input_dim)
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
     def _circuit(self, inputs, weights):
+        """Define the quantum circuit."""
+        # Ensure the weights tensor has the correct shape
+        print("Initial weights shape:", weights.shape)
+        print("Expected shape:", (self.n_layers, self.input_dim, 3))
+        reshaped_weights = weights.reshape(
+            self.n_layers,
+            self.input_dim,
+            3,
+        )  # Adjust last dimension to 3
         qml.AngleEmbedding(inputs, wires=range(self.input_dim))
-        qml.StronglyEntanglingLayers(
-            weights.reshape(self.n_layers, self.input_dim, 2),
-            wires=range(self.input_dim),
-        )
+        qml.StronglyEntanglingLayers(reshaped_weights, wires=range(self.input_dim))
         return [qml.expval(qml.PauliZ(i)) for i in range(self.output_dim)]
 
     def forward(self, x):
         outputs = []
         for sample in x:
-            outputs.append(self.qnode(sample, self.params))
+            # Ensure the output is a PyTorch tensor
+            result = self.qnode(sample, self.params)
+            result_tensor = (
+                torch.tensor(result) if not isinstance(result, torch.Tensor) else result
+            )
+            outputs.append(result_tensor)
         return torch.stack(outputs)
 
 
