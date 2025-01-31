@@ -54,43 +54,5 @@ def run_train(env_name, num_epochs, seed):
             agent.memory.push(Experience(state, action, reward, next_state, terminated))
             agent.update()
 
-        # for step, (state, action, reward, next_state, terminated) in enumerate(dataset):
-        #     print("Processing sample")
-        #     agent.memory.push(Experience(state, action, reward, next_state, terminated))
-        #     agent.update()
-        #     epoch_reward += reward
-
-        #     # Log progress every 5% or at the last step
-        #     if (step + 1) % log_interval == 0 or (step + 1) == num_steps:
-        #         percentage_done = ((step + 1) / num_steps) * 100
-        #         print(f"Epoch {epoch + 1}/{num_epochs}: {percentage_done:.1f}% done")
-
         reward_history.append(epoch_reward)
         print(f"Epoch {epoch + 1}/{num_epochs} completed. Epoch Reward = {epoch_reward}")
-
-    # Training loop (old)
-    # for epoch in range(num_epochs):
-    #     print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
-    #     state = env.reset()[0]
-    #     total_reward = 0
-    #     epoch_reward = 0
-
-    #     for state, action, reward, next_state, terminated in dataset:
-    #         agent.memory.push(Experience(state, action, reward, next_state, terminated))
-    #         agent.update()
-    #         epoch_reward += reward
-    #     reward_history.append(epoch_reward)
-    #     # agent.update_target()
-    #     print(f"Epoch {epoch + 1}: Epoch Reward = {epoch_reward}")
-    #     print(f"Epoch {epoch + 1}: Total Reward = {total_reward}")
-    # # end of Training loop (old)
-
-    # Training loop v2
-    # for epoch in range(num_epochs):
-    #     total_reward = 0.0
-    #     for obs, action, reward, next_obs, terminal in dataset:
-    #         agent.update(obs, action, reward, next_obs, terminal)
-    #         total_reward += reward
-    #     reward_history.append(total_reward)
-    #     print(f"Epoch {epoch + 1}/{num_epochs}, Total Reward: {total_reward}")
-    # print("Training completed.")

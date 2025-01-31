@@ -113,12 +113,6 @@ class DQNAgent:
         # perform simlated annealin step
         self.optimizer.step(loss_fn)
 
-        # Update (old)
-        # loss = self.loss_fn(q_values, targets.detach())
-        # self.optimizer.zero_grad()
-        # loss.backward()
-        # self.optimizer.step()
-
     def update_target(self):
         """Update the target network."""
         self.target_net.load_state_dict(self.policy_net.state_dict())
