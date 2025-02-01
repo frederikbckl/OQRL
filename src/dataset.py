@@ -43,3 +43,14 @@ class OfflineDataset:
             self.next_observations[indices],
             self.terminals[indices],
         )
+
+    def get_batches(self, batch_size):
+        """Generator that yields batches of experiences sequentially."""
+        for i in range(0, self.size, batch_size):
+            yield (
+                self.observations[i : i + batch_size],
+                self.actions[i : i + batch_size],
+                self.rewards[i : i + batch_size],
+                self.next_observations[i : i + batch_size],
+                self.terminals[i : i + batch_size],
+            )

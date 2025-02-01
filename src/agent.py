@@ -1,10 +1,11 @@
-import time
+# import time
 
 import numpy as np
 import pennylane as qml
 import torch
 from torch import nn, optim
 
+# from optim import SimulatedAnnealing
 from utils import ReplayMemory
 
 # from utils import Experience
@@ -18,7 +19,10 @@ class VQC(nn.Module):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
-        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3, requires_grad=True))
+        self.params = nn.Parameter(
+            torch.rand(n_layers * input_dim * 3, requires_grad=True),
+        )  # forAdam
+        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
         self.device = torch.device("cpu")
 
         self.dev = qml.device("default.qubit", wires=input_dim)
@@ -42,14 +46,14 @@ class VQC(nn.Module):
         # print(f"RunningVQC forward pass for batch of size {len(x)}")
         outputs = []
         for sample in x:
-            start_time = time.time()
+            # start_time = time.time()
             # Ensure the output is a PyTorch tensor
             result = self.qnode(sample, self.params)
             result_tensor = (
                 torch.tensor(result) if not isinstance(result, torch.Tensor) else result
             )
             outputs.append(result_tensor)
-            print(f"VQC forward pass took {time.time() - start_time:.2f} seconds")
+            # print(f"VQC forward pass took {time.time() - start_time:.2f} seconds")
 
         return torch.stack(outputs)
 
@@ -71,14 +75,33 @@ class DQNAgent:
         self.act_dim = act_dim
         self.gamma = gamma
         self.batch_size = batch_size
+        self.replay_capacity = replay_capacity
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize VQC policy network
         self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
         self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
-        self.loss_fn = nn.MSELoss()
+        # Disable gradients for policy_net and target_net
+        for param in self.policy_net.parameters():
+            param.requires_grad = False
+        for param in self.target_net.parameters():
+            param.requires_grad = False
+
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)  # forAdam
+        self.loss_fn = nn.MSELoss()  # forAdam
+
+        # Metaheuristic optimizer (previously used Adam)
+        # self.optimizer = SimulatedAnnealing(
+        #     params=self.policy_net.parameters(),
+        #     init_temp=1.0,
+        #     cooling_rate=0.99,
+        #     min_temp=0.1,
+        # )
+
+        # Loss function remains for computing the difference (optional)
+        # self.loss_fn = lambda q_values, targets: torch.mean((q_values - targets) ** 2).item()
 
         # Replay memory
         self.memory = ReplayMemory(replay_capacity)
@@ -97,29 +120,50 @@ class DQNAgent:
         if len(self.memory) < self.batch_size:
             return
 
+        # Sample a batch from memory
         batch = self.memory.sample(self.batch_size)
+        # print(batch)
+        # print(len(batch))
 
-        # Unpack Experience objects
-        states = torch.stack([exp.obs for exp in batch])
-        actions = torch.stack([exp.action for exp in batch])
-        rewards = torch.stack([exp.reward for exp in batch])
-        next_states = torch.stack([exp.next_obs for exp in batch])
-        terminals = torch.stack([exp.terminated for exp in batch])
+        # Unpack batch into individual tensors
+        states = torch.stack([exp.obs for exp in batch]).to(self.device)
+        actions = torch.stack([exp.action for exp in batch]).to(self.device)
+        rewards = torch.stack([exp.reward for exp in batch]).to(self.device)
+        next_states = torch.stack([exp.next_obs for exp in batch]).to(self.device)
+        terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
 
-        # Compute Q-values (no gradients required)
+        # Compute Q-values for current states and actions
         q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
 
-        # Cache target network values if required repeatedly
-        with torch.no_grad():  # No gradients needed for target values
+        # Compute next Q-values only once (no gradients required)
+        with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0]
+
+        # Compute targets
         targets = rewards + (1 - terminals) * self.gamma * next_q_values
 
-        # Simulated Annealing optimization
-        def loss_fn():
-            return torch.mean((q_values - targets) ** 2).item()
+        # Define the loss function for metaheuristic optimization
+        loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
 
-        # perform simlated annealin step
+        # Perform metaheuristic optimization
         self.optimizer.step(loss_fn)
+
+        # Cache target network values if required repeatedly (old)
+        # with torch.no_grad():  # No gradients needed for target values
+        #     next_q_values = self.target_net(next_states).max(1)[0]
+
+        # Compute TD error and loss (old-ish)
+        # loss = torch.nn.functional.mse_loss(q_values, targets)
+
+        # Perform optimization step (Simulated Annealing or Adam) (old-ish)
+        # self.optimizer.step(lambda: loss.item())
+
+        # Simulated Annealing optimization (old)
+        # def loss_fn():
+        #     return torch.mean((q_values - targets) ** 2).item()
+
+        # perform simlated annealin step (old)
+        # self.optimizer.step(loss_fn)
 
     def update_target(self):
         """Update the target network."""
