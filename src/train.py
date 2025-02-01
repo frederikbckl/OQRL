@@ -33,6 +33,8 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path)
     total_samples = dataset.size
     reward_history = []
+    subset_fraction = 0.1  # Fraction of the dataset to use for training
+    subset_size = int(total_samples * subset_fraction)
 
     # Training loop
     for epoch in range(num_epochs):
@@ -45,7 +47,10 @@ def run_train(env_name, num_epochs, seed):
 
         # Process dataset in batches instead of single samples
         for batch in dataset.get_batches(batch_size=64):
-            # print(f"Processing batch {batch_idx}/{total_samples // batch_size}")  # Batch log
+            if batch_idx > subset_size // 64:  # Limit the number of batches
+                break
+
+            print(f"Processing batch {batch_idx}/{total_samples // batch_size}")  # Batch log
             states, actions, rewards, next_states, terminals = batch
 
             # Store in replay memory
@@ -64,14 +69,16 @@ def run_train(env_name, num_epochs, seed):
             # print(f"Batch {batch_idx} completed. Batch Reward = {batch_reward:.2f}")
 
             # Log progress every 5% of the dataset
-            processed_samples = batch_idx * batch_size  # Total processed samples
+            processed_samples = batch_idx * len(states)  # Total processed samples
             # replaced batch_size with len(states) for accurate count (last batch may be smaller)
-            if processed_samples % (total_samples // 20) == 0:  # Every 5% of the dataset
+            current_percentage = (processed_samples / total_samples) * 100
+
+            if current_percentage >= last_logged_percentage + 5:
                 print(
                     f"Processed {processed_samples}/{total_samples} samples "
-                    f"({(processed_samples / total_samples) * 100:.1f}%) - "
-                    f"Current Epoch Reward: {epoch_reward:.2f}",
+                    f"({current_percentage:.1f}%) - Current Epoch Reward: {epoch_reward:.2f}",
                 )
+                last_logged_percentage += 5
 
             # Log progress when crossing new 5% threshold
             # if current_percentage >= last_logged_percentage + 5:
