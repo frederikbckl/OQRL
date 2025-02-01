@@ -14,7 +14,8 @@ from utils import ReplayMemory
 class VQC(nn.Module):
     """Variational Quantum Circuit implemented using PennyLane."""
 
-    def __init__(self, input_dim, output_dim, n_layers=2):
+    def __init__(self, input_dim, output_dim, n_layers=1):
+        """Reduced n_layers to 1 for faster training."""
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -22,7 +23,7 @@ class VQC(nn.Module):
         self.params = nn.Parameter(
             torch.rand(n_layers * input_dim * 3, requires_grad=True),
         )  # forAdam
-        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
+        # self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
         self.device = torch.device("cpu")
 
         self.dev = qml.device("default.qubit", wires=input_dim)
@@ -38,7 +39,11 @@ class VQC(nn.Module):
             self.input_dim,
             3,
         )  # Adjust last dimension to 3
-        qml.AngleEmbedding(inputs, wires=range(self.input_dim))
+        qml.AngleEmbedding(inputs, wires=range(self.input_dim), rotation="Y")
+        # qml.BasicEntanglerLayers(
+        #     reshaped_weights,
+        #     wires=range(self.input_dim),
+        # )  # less expensive than StronlyEntanglingLayers, yet still useful
         qml.StronglyEntanglingLayers(reshaped_weights, wires=range(self.input_dim))
         return [qml.expval(qml.PauliZ(i)) for i in range(self.output_dim)]
 
@@ -147,23 +152,6 @@ class DQNAgent:
 
         # Perform metaheuristic optimization
         self.optimizer.step(loss_fn)
-
-        # Cache target network values if required repeatedly (old)
-        # with torch.no_grad():  # No gradients needed for target values
-        #     next_q_values = self.target_net(next_states).max(1)[0]
-
-        # Compute TD error and loss (old-ish)
-        # loss = torch.nn.functional.mse_loss(q_values, targets)
-
-        # Perform optimization step (Simulated Annealing or Adam) (old-ish)
-        # self.optimizer.step(lambda: loss.item())
-
-        # Simulated Annealing optimization (old)
-        # def loss_fn():
-        #     return torch.mean((q_values - targets) ** 2).item()
-
-        # perform simlated annealin step (old)
-        # self.optimizer.step(loss_fn)
 
     def update_target(self):
         """Update the target network."""
