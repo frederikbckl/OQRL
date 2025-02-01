@@ -40,9 +40,11 @@ def run_train(env_name, num_epochs, seed):
         # total_reward = 0
         epoch_reward = 0
         batch_idx = 0
+        batch_size = 64
 
         # Process dataset in batches instead of single samples
         for batch in dataset.get_batches(batch_size=64):
+            print(f"Processing batch {batch_idx + 1}/{total_samples // batch_size}")  # Batch log
             states, actions, rewards, next_states, terminals = batch
 
             # Store in replay memory
@@ -54,12 +56,20 @@ def run_train(env_name, num_epochs, seed):
             # Update agent
             agent.update()
 
-            # Log progress every 5%
-            batch_idx += len(states)
-            if batch_idx % (total_samples // 20) == 0:  # Every 5% of the dataset
+            # Track progress
+            last_logged_percentage = 0
+
+            # Log progress
+            batch_idx += 1
+            processed_samples = batch_idx * batch_size  # Total processed samples
+            current_percentage = int((processed_samples / total_samples) * 100)
+
+            # Log progress when crossing new 5% threshold
+            if current_percentage >= last_logged_percentage + 5:
                 print(
-                    f"Processed {batch_idx}/{total_samples} samples ({(batch_idx / total_samples) * 100:.1f}%)",
+                    f"Processed {processed_samples}/{total_samples} samples ({current_percentage:.1f}%)",
                 )
+                last_logged_percentage = current_percentage
 
         reward_history.append(epoch_reward)
         print(f"Epoch {epoch + 1} completed. Total Reward = {epoch_reward}")
