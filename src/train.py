@@ -33,7 +33,7 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.1  # Fraction of the dataset to use for training
+    subset_fraction = 0.2  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
 
     # Training loop
@@ -50,7 +50,7 @@ def run_train(env_name, num_epochs, seed):
             if batch_idx > subset_size // 64:  # Limit the number of batches
                 break
 
-            print(f"Processing batch {batch_idx}/{total_samples // batch_size}")  # Batch log
+            # print(f"Processing batch {batch_idx}/{total_samples // batch_size}")  # Batch log
             states, actions, rewards, next_states, terminals = batch
 
             # Store in replay memory
@@ -66,7 +66,7 @@ def run_train(env_name, num_epochs, seed):
             batch_reward = rewards.sum()
             epoch_reward += batch_reward  # .item()
 
-            # print(f"Batch {batch_idx} completed. Batch Reward = {batch_reward:.2f}")
+            # print(f"Batch {batch_idx} completed.")
 
             # Log progress every 5% of the dataset
             processed_samples = batch_idx * len(states)  # Total processed samples
@@ -76,7 +76,7 @@ def run_train(env_name, num_epochs, seed):
             if current_percentage >= last_logged_percentage + 5:
                 print(
                     f"Processed {processed_samples}/{total_samples} samples "
-                    f"({current_percentage:.1f}%) - Current Epoch Reward: {epoch_reward:.2f}",
+                    f"({current_percentage:.1f}%)",
                 )
                 last_logged_percentage += 5
 
@@ -95,7 +95,7 @@ def run_train(env_name, num_epochs, seed):
         # Testing the agent
         print(f"Starting evaluation for Epoch {epoch + 1}...")
         eval_rewards = []
-        num_episodes = 10  # Number of episodes for evaluation
+        num_episodes = 25  # Number of episodes for evaluation
         for episode in range(num_episodes):
             state = env.reset()[0]
             done = False
