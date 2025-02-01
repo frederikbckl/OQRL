@@ -41,6 +41,7 @@ def run_train(env_name, num_epochs, seed):
         epoch_reward = 0
         batch_idx = 0
         batch_size = 64
+        last_logged_percentage = 0
 
         # Process dataset in batches instead of single samples
         for batch in dataset.get_batches(batch_size=64):
@@ -57,7 +58,7 @@ def run_train(env_name, num_epochs, seed):
             agent.update()
 
             # Track progress
-            last_logged_percentage = 0
+            # last_logged_percentage = 0
 
             # Log progress
             batch_idx += 1
