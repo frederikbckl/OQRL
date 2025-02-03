@@ -8,17 +8,28 @@ class OfflineDataset:
     def __init__(self, file_path):
         """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
-        # Convert to NumPy arrays and remove extra dimensions using np.squeeze
-        self.observations = np.squeeze(
-            np.array(self.file["observations"]),
-            axis=1,
-        )  # Shape (174700, 4)
-        self.actions = np.squeeze(np.array(self.file["actions"]), axis=(1, 2))  # Shape (174700,)
-        self.rewards = np.array(self.file["rewards"])  # Already 1D, no need for squeeze
-        self.next_observations = np.squeeze(
-            np.array(self.file["next_observations"]),
-            axis=1,
-        )  # Shape (174700, 4)
+        print("Shape of observations before squeezing:", np.array(self.file["observations"]).shape)
+        # if statement for different dataset shapes
+        if np.array(self.file["observations"]).shape == (100000, 4):
+            self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
+            self.actions = np.array(self.file["actions"])  # Adjust if needed
+            self.rewards = np.array(self.file["rewards"])  # Already 1D
+            self.next_observations = np.array(self.file["next_observations"])  # Shape (100000, 4)
+        else:
+            # Convert to NumPy arrays and remove extra dimensions using np.squeeze
+            self.observations = np.squeeze(
+                np.array(self.file["observations"]),
+                axis=1,
+            )  # Shape (174700, 4)
+            self.actions = np.squeeze(
+                np.array(self.file["actions"]),
+                axis=(1, 2),
+            )  # Shape (174700,)
+            self.rewards = np.array(self.file["rewards"])  # Already 1D, no need for squeeze
+            self.next_observations = np.squeeze(
+                np.array(self.file["next_observations"]),
+                axis=1,
+            )  # Shape (174700, 4)
         self.terminals = np.array(self.file["terminals"])  # Already 1D, no need for squeeze
         self.size = len(self.observations)
 

@@ -33,7 +33,7 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.2  # Fraction of the dataset to use for training
+    subset_fraction = 0.5  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
 
     # Training loop

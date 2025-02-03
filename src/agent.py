@@ -14,7 +14,7 @@ from utils import ReplayMemory
 class VQC(nn.Module):
     """Variational Quantum Circuit implemented using PennyLane."""
 
-    def __init__(self, input_dim, output_dim, n_layers=1):
+    def __init__(self, input_dim, output_dim, n_layers=2):
         """Reduced n_layers to 1 for faster training."""
         super().__init__()
         self.input_dim = input_dim
