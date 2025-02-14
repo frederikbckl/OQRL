@@ -3,7 +3,9 @@
 import numpy as np
 import pennylane as qml
 import torch
-from torch import nn, optim
+from torch import nn
+
+from optim import GAOptimizer
 
 # from optim import SimulatedAnnealing
 from utils import ReplayMemory
@@ -20,10 +22,10 @@ class VQC(nn.Module):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
-        self.params = nn.Parameter(
-            torch.rand(n_layers * input_dim * 3, requires_grad=True),
-        )  # forAdam
-        # self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
+        # self.params = nn.Parameter(
+        #     torch.rand(n_layers * input_dim * 3, requires_grad=True),
+        # )  # forAdam
+        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
         self.device = torch.device("cpu")
 
         self.dev = qml.device("default.qubit", wires=input_dim)
@@ -94,8 +96,8 @@ class DQNAgent:
         for param in self.target_net.parameters():
             param.requires_grad = False
 
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)  # forAdam
-        self.loss_fn = nn.MSELoss()  # forAdam
+        self.optimizer = GAOptimizer(model=self.policy_net)
+        self.loss_fn = nn.MSELoss()
 
         # Metaheuristic optimizer (previously used Adam)
         # self.optimizer = SimulatedAnnealing(
@@ -151,7 +153,7 @@ class DQNAgent:
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
 
         # Perform metaheuristic optimization
-        self.optimizer.step(loss_fn)
+        self.optimizer.optimize(loss_fn, batch)  # use optimize() instead of step()
 
     def update_target(self):
         """Update the target network."""
