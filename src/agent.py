@@ -17,7 +17,7 @@ class VQC(nn.Module):
     """Variational Quantum Circuit implemented using PennyLane."""
 
     def __init__(self, input_dim, output_dim, n_layers=2):
-        """Reduced n_layers to 1 for faster training."""
+        """Reduced n_layers to 2 for faster training."""
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -42,10 +42,6 @@ class VQC(nn.Module):
             3,
         )  # Adjust last dimension to 3
         qml.AngleEmbedding(inputs, wires=range(self.input_dim), rotation="Y")
-        # qml.BasicEntanglerLayers(
-        #     reshaped_weights,
-        #     wires=range(self.input_dim),
-        # )  # less expensive than StronlyEntanglingLayers, yet still useful
         qml.StronglyEntanglingLayers(reshaped_weights, wires=range(self.input_dim))
         return [qml.expval(qml.PauliZ(i)) for i in range(self.output_dim)]
 

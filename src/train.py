@@ -41,7 +41,7 @@ def run_train(env_name, num_epochs, seed):
         print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
         epoch_reward = 0
         batch_idx = 1
-        batch_size = 64
+        # batch_size = 64
         last_logged_percentage = 0
 
         # Process dataset in batches instead of single samples
