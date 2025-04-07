@@ -3,6 +3,8 @@ import random
 import numpy as np
 import torch
 
+from utils import Experience
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -37,30 +39,24 @@ class GAOptimizer:
         for param, ind_param in zip(self.model.parameters(), individual):
             param.data.copy_(ind_param)
 
-        # print(f"Batch type: {type(batch)}, First item type: {type(batch[0])}")
-        # print(f"Batch type: {type(batch)}, Length: {len(batch)}")
-        # print(
-        #     f"Batch[0] type: {type(batch[0])}, Shape: {batch[0].shape if isinstance(batch[0], np.ndarray) else 'N/A'}",
-        # )
-        # print(
-        #     f"Batch[1] type: {type(batch[1])}, Shape: {batch[1].shape if isinstance(batch[1], np.ndarray) else 'N/A'}",
-        # )
-        # print(
-        #     f"Batch[2] type: {type(batch[2])}, Shape: {batch[2].shape if isinstance(batch[2], np.ndarray) else 'N/A'}",
-        # )
-        # print(
-        #     f"Batch[3] type: {type(batch[3])}, Shape: {batch[3].shape if isinstance(batch[3], np.ndarray) else 'N/A'}",
-        # )
-        # print(
-        #     f"Batch[4] type: {type(batch[4])}, Shape: {batch[4].shape if isinstance(batch[4], np.ndarray) else 'N/A'}",
-        # )
-
         print(f"Batch type: {type(batch)}")
         print(f"Batch[0] type: {type(batch[0]) if isinstance(batch, (list, tuple)) else 'N/A'}")
         print(f"Batch length: {len(batch) if isinstance(batch, (list, tuple)) else 'N/A'}")
 
+        # Check if batch is a list or tuple
+        print(f"Batch content: {batch}")
+        if isinstance(batch[0], Experience):
+            # Unpack Experience objects if present
+            states = np.array([exp.obs for exp in batch])
+            actions = np.array([exp.action for exp in batch])
+            rewards = np.array([exp.reward for exp in batch])
+            next_states = np.array([exp.next_obs for exp in batch])
+            terminals = np.array([exp.terminated for exp in batch])
+        else:
+            states, actions, rewards, next_states, terminals = batch
+
         # Unpack batch assuming it's a tuple of NumPy arrays or PyTorch tensors
-        states, actions, rewards, next_states, terminals = batch
+        # states, actions, rewards, next_states, terminals = batch
 
         # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
         states = (
@@ -89,14 +85,21 @@ class GAOptimizer:
             else torch.tensor(terminals, dtype=torch.float32).to(device)
         )
 
-        if isinstance(batch[0], np.ndarray):  # If batch contains NumPy arrays directly
-            states, actions, rewards, next_states, terminals = batch
-        else:  # If batch contains Experience objects
-            states = np.array([exp.obs for exp in batch])
-            actions = np.array([exp.action for exp in batch])
-            rewards = np.array([exp.reward for exp in batch])
-            next_states = np.array([exp.next_obs for exp in batch])
-            terminals = np.array([exp.done for exp in batch])
+        # if isinstance(batch[0], np.ndarray):  # If batch contains NumPy arrays directly
+        #     states, actions, rewards, next_states, terminals = batch
+        # else:  # If batch contains Experience objects
+        #     states = np.array([exp.obs for exp in batch])
+        #     actions = np.array([exp.action for exp in batch])
+        #     rewards = np.array([exp.reward for exp in batch])
+        #     next_states = np.array([exp.next_obs for exp in batch])
+        #     terminals = np.array([exp.done for exp in batch])
+
+        # Convert to PyTorch tensors
+        # states = torch.tensor(states, dtype=torch.float32).to(device)
+        # actions = torch.tensor(actions, dtype=torch.int64).to(device)
+        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
+        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
+        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
 
         # Convert to PyTorch tensors
         states = torch.tensor(states, dtype=torch.float32).to(device)
@@ -104,46 +107,6 @@ class GAOptimizer:
         rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
         next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
         terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
-
-        # Extract numerical data from Experience objects
-        # states = torch.tensor([exp.obs for exp in batch], dtype=torch.float32).to(device)
-        # actions = torch.tensor([exp.action for exp in batch], dtype=torch.int64).to(device)
-        # rewards = torch.tensor([exp.reward for exp in batch], dtype=torch.float32).to(device)
-        # next_states = torch.tensor([exp.next_obs for exp in batch], dtype=torch.float32).to(device)
-        # terminals = torch.tensor([exp.done for exp in batch], dtype=torch.float32).to(device)
-
-        # NEW CODE
-        # Convert batch items to NumPy arrays before using them
-        # states = np.array(batch[0]) if isinstance(batch[0], list) else batch[0]
-        # actions = np.array(batch[1]) if isinstance(batch[1], list) else batch[1]
-        # rewards = np.array(batch[2]) if isinstance(batch[2], list) else batch[2]
-        # next_states = np.array(batch[3]) if isinstance(batch[3], list) else batch[3]
-        # terminals = np.array(batch[4]) if isinstance(batch[4], list) else batch[4]
-
-        # Convert to PyTorch tensors
-        states = torch.tensor(states, dtype=torch.float32).to(device)
-        actions = torch.tensor(actions, dtype=torch.int64).to(device)
-        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
-        next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
-        terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
-
-        # OLD CODE
-        # # Extract raw NumPy arrays directly
-        # states = torch.tensor(batch[0], dtype=torch.float32).to(
-        #     next(self.model.parameters()).device,
-        # )
-        # actions = torch.tensor(batch[1], dtype=torch.int64).to(
-        #     next(self.model.parameters()).device,
-        # )
-        # rewards = torch.tensor(batch[2], dtype=torch.float32).to(
-        #     next(self.model.parameters()).device,
-        # )
-        # next_states = torch.tensor(batch[3], dtype=torch.float32).to(
-        #     next(self.model.parameters()).device,
-        # )
-        # terminals = torch.tensor(batch[4], dtype=torch.float32).to(
-        #     next(self.model.parameters()).device,
-        # )
 
         q_values = (
             self.model(states).gather(1, actions.view(-1, 1)).squeeze()
