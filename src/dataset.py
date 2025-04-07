@@ -1,52 +1,67 @@
 import h5py
 import numpy as np
-import torch
-from torch.utils.data import Dataset
 
 
-class HDF5Dataset(Dataset):
+class OfflineDataset:
+    """Offline Dataset for loading pre-collected transitions."""
+
     def __init__(self, file_path):
-        """Initialize the dataset by loading the HDF5 file.
+        """Initialize the dataset by loading the HDF5 file."""
+        self.file = h5py.File(file_path, "r")
+        print("Shape of observations before squeezing:", np.array(self.file["observations"]).shape)
+        # if statement for different dataset shapes
+        if np.array(self.file["observations"]).shape == (100000, 4):
+            self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
+            self.actions = np.array(self.file["actions"])  # Adjust if needed
+            self.rewards = np.array(self.file["rewards"])  # Already 1D
+            self.next_observations = np.array(self.file["next_observations"])  # Shape (100000, 4)
+        else:
+            # Convert to NumPy arrays and remove extra dimensions using np.squeeze
+            self.observations = np.squeeze(
+                np.array(self.file["observations"]),
+                axis=1,
+            )  # Shape (174700, 4)
+            self.actions = np.squeeze(
+                np.array(self.file["actions"]),
+                axis=(1, 2),
+            )  # Shape (174700,)
+            self.rewards = np.array(self.file["rewards"])  # Already 1D, no need for squeeze
+            self.next_observations = np.squeeze(
+                np.array(self.file["next_observations"]),
+                axis=1,
+            )  # Shape (174700, 4)
+        self.terminals = np.array(self.file["terminals"])  # Already 1D, no need for squeeze
+        self.size = len(self.observations)
 
-        Args: file_path (str): Path to the HDF5 file.
-        """
-        # print("Hello __init__")
-        self.file_path = file_path
-        with h5py.File(self.file_path, "r") as f:
-            self.observations = np.array(f["observations"])
-            self.actions = np.array(f["actions"])
-            self.rewards = np.array(f["rewards"])
-            # Debug prints
-            print("Rewards type after loading from HDF5:", type(self.rewards))
-            print("Rewards shape after loading from HDF5:", self.rewards.shape)
-            print("First few rewards:", self.rewards[:5])  # Print a few sample values
-            self.next_observations = np.array(f["next_observations"])
-            self.terminals = np.array(f["terminals"])
+    def __iter__(self):
+        """Make the dataset iterable."""
+        for i in range(self.size):
+            yield (
+                self.observations[i],
+                self.actions[i],
+                self.rewards[i],
+                self.next_observations[i],
+                self.terminals[i],
+            )
 
-    def __len__(self):
-        """Return the size of the dataset."""
-        # print("Hello __len__")
-        return len(self.observations)
-
-    def __getitem__(self, idx):
-        """Return a single sample of data."""
-        # print("Hello __getitem__")
-        observation = self.observations[idx]
-        action = self.actions[idx]
-        reward = self.rewards[idx]
-        next_observation = self.next_observations[idx]
-        terminal = self.terminals[idx]
-
-        # Debug prints
-        # print(f"Reward at index {idx}: {reward}")
-
+    def get_batch(self, batch_size):
+        """Get a random batch of data."""
+        indices = np.random.randint(0, self.size, size=batch_size)
         return (
-            torch.tensor(observation, dtype=torch.float32),
-            torch.tensor(
-                action,
-                dtype=torch.long,
-            ),  # actions are discrete in CartPole -> PyTorch requires the tensors to be torch.long
-            torch.tensor(reward, dtype=torch.float32),
-            torch.tensor(next_observation, dtype=torch.float32),
-            bool(terminal),
+            self.observations[indices],
+            self.actions[indices],
+            self.rewards[indices],
+            self.next_observations[indices],
+            self.terminals[indices],
         )
+
+    def get_batches(self, batch_size):
+        """Generator that yields batches of experiences sequentially."""
+        for i in range(0, self.size, batch_size):
+            yield (
+                self.observations[i : i + batch_size],
+                self.actions[i : i + batch_size],
+                self.rewards[i : i + batch_size],
+                self.next_observations[i : i + batch_size],
+                self.terminals[i : i + batch_size],
+            )
