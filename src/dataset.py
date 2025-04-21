@@ -9,7 +9,8 @@ class OfflineDataset:
         """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
         print(
-            "\nShape of observations before squeezing:", np.array(self.file["observations"]).shape
+            "\nShape of observations before squeezing:",
+            np.array(self.file["observations"]).shape,
         )
         # if statement for different dataset shapes
         if np.array(self.file["observations"]).shape == (100000, 4):
@@ -67,3 +68,15 @@ class OfflineDataset:
                 self.next_observations[i : i + batch_size],
                 self.terminals[i : i + batch_size],
             )
+
+    def sample(self, size):
+        """Randomly sample a subset of the dataset."""
+        indices = np.random.choice(self.size, size, replace=False)
+
+        observations = self.observations[indices]
+        actions = self.actions[indices]
+        rewards = self.rewards[indices]
+        next_observations = self.next_observations[indices]
+        terminals = self.terminals[indices]
+
+        return list(zip(observations, actions, rewards, next_observations, terminals))

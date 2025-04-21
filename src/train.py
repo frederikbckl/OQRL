@@ -33,60 +33,90 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.3  # Fraction of the dataset to use for training
+    subset_fraction = 0.2  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
+    batch_size = 64
+    subset = dataset.sample(subset_size)
+    max_batches = len(subset)  # since subset already contains the batches
+    max_batches = subset_size // batch_size + int(subset_size % batch_size != 0)
 
     print(f"Total samples: {total_samples}")
     print(f"Subset size: {subset_size}")
-    print(f"Max batches this epoch: {subset_size // 64}")
+    print(f"Max batches this epoch: {subset_size // batch_size}")
 
     # Training loop
     for epoch in range(num_epochs):
-        print(f"\nEpoch {epoch + 1}/{num_epochs} started...\n")  # Start of the epoch
+        print("\n--------------------------------")
+        print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
+        print("--------------------------------\n")
+
+        # Sample a fresh subset from the full dataset
+        subset = dataset.sample(subset_size)
+        print(f"Sampled {len(subset)} experiences for this epoch.")
+
         print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
         # batch_size = 64
         last_logged_percentage = 0
+        processed_samples = 0
 
         # Process dataset in batches instead of single samples
-        for batch in dataset.get_batches(batch_size=64):
-            if batch_idx > subset_size // 64:  # Limit the number of batches
-                break
+
+        for step, batch_start in enumerate(range(0, len(subset), batch_size), start=1):
+            batch = subset[batch_start : batch_start + batch_size]
+            # for batch_idx in range(0, len(subset), batch_size):
+            #     batch = subset[batch_idx : batch_idx + batch_size]
+            if len(batch) == 0:
+                continue
+
+            # print(f"Actual batch size: {len(batch)}")
 
             # Process batch
-            states, actions, rewards, next_states, terminals = batch
+            # states, actions, rewards, next_states, terminals = batch
+            states, actions, rewards, next_states, terminals = zip(*batch)
+
+            # print(
+            #     f"Processing batch {batch_idx}/{max_batches} with {len(states)} samples...",
+            # )
 
             # Store in replay memory
-            for i in range(len(states)):
+            for j in range(len(states)):
                 agent.memory.push(
-                    Experience(states[i], actions[i], rewards[i], next_states[i], terminals[i]),
+                    Experience(states[j], actions[j], rewards[j], next_states[j], terminals[j]),
                 )
 
             # Update agent using GAOptimizer
             def loss_fn(q, target):
                 return torch.nn.functional.mse_loss(q, target)
 
-            agent.optimizer.optimize(loss_fn, batch)
+            # max_batches = len(subset) // batch_size + int(len(subset) % batch_size != 0)
+            print(
+                f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",
+            )
+
+            # Run GA periodically instead of every batch
+            # if step % 10 == 0:
+            #     print(f"OPTIMIZE CALLED at batch index {step}")
+            #     start = time.time()
+            #     agent.optimizer.optimize(loss_fn, batch)
+            #     print(f"GA Optimization took {time.time() - start:.2f} seconds")
 
             # Update agent
             agent.update()
 
             # Accumulate rewards (for the epoch)
-            batch_reward = rewards.sum()
+            batch_reward = sum(rewards)
             epoch_reward += batch_reward  # .item()
 
-            # Log progress every 5% of the dataset
-            processed_samples = batch_idx * len(states)  # Total processed samples
-            # replaced batch_size with len(states) for accurate count (last batch may be smaller)
-            current_percentage = (processed_samples / subset_size) * 100
-
-            if batch_idx % 10 == 0:
-                print(f"Batch {batch_idx} running, {processed_samples} samples seen...")
+            ##NEW CODE
+            # Accumulate total samples processed
+            processed_samples += len(states)
+            current_percentage = (processed_samples / total_samples) * 100
 
             if current_percentage >= last_logged_percentage + 5:
                 print(
-                    f"Processed {processed_samples}/{subset_size} samples "
+                    f"Processed {processed_samples}/{total_samples} samples "
                     f"({current_percentage:.1f}%)",
                 )
                 last_logged_percentage += 5

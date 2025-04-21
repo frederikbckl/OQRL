@@ -12,8 +12,8 @@ class GAOptimizer:
     def __init__(
         self,
         model,
-        population_size=20,
-        num_generations=15,
+        population_size=15,
+        num_generations=5,
         mutation_rate=0.1,
         crossover_rate=0.5,
     ):
@@ -53,7 +53,8 @@ class GAOptimizer:
             next_states = np.array([exp.next_obs for exp in batch])
             terminals = np.array([exp.terminated for exp in batch])
         else:
-            states, actions, rewards, next_states, terminals = batch
+            # states, actions, rewards, next_states, terminals = batch
+            states, actions, rewards, next_states, terminals = zip(*batch)
 
         # Unpack batch assuming it's a tuple of NumPy arrays or PyTorch tensors
         # states, actions, rewards, next_states, terminals = batch
@@ -136,6 +137,7 @@ class GAOptimizer:
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""
         for generation in range(self.num_generations):
+            print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")
             # Evaluate fitness for each individual
             fitness = [self._evaluate_fitness(ind, loss_fn, batch) for ind in self.population]
 
@@ -167,6 +169,9 @@ class GAOptimizer:
                 next_population.extend([child1, child2])
 
             self.population = next_population[: self.population_size]
+
+        # delete this log later
+        print("Finished GA optimization for batch")
 
         # Load the best individual's weights into the model
         if self.best_individual is not None:
