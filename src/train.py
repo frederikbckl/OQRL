@@ -36,9 +36,14 @@ def run_train(env_name, num_epochs, seed):
     subset_fraction = 0.3  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
 
+    print(f"Total samples: {total_samples}")
+    print(f"Subset size: {subset_size}")
+    print(f"Max batches this epoch: {subset_size // 64}")
+
     # Training loop
     for epoch in range(num_epochs):
-        print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
+        print(f"\nEpoch {epoch + 1}/{num_epochs} started...\n")  # Start of the epoch
+        print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
         # batch_size = 64
@@ -74,11 +79,14 @@ def run_train(env_name, num_epochs, seed):
             # Log progress every 5% of the dataset
             processed_samples = batch_idx * len(states)  # Total processed samples
             # replaced batch_size with len(states) for accurate count (last batch may be smaller)
-            current_percentage = (processed_samples / total_samples) * 100
+            current_percentage = (processed_samples / subset_size) * 100
+
+            if batch_idx % 10 == 0:
+                print(f"Batch {batch_idx} running, {processed_samples} samples seen...")
 
             if current_percentage >= last_logged_percentage + 5:
                 print(
-                    f"Processed {processed_samples}/{total_samples} samples "
+                    f"Processed {processed_samples}/{subset_size} samples "
                     f"({current_percentage:.1f}%)",
                 )
                 last_logged_percentage += 5

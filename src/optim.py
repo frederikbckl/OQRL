@@ -39,12 +39,12 @@ class GAOptimizer:
         for param, ind_param in zip(self.model.parameters(), individual):
             param.data.copy_(ind_param)
 
-        print(f"Batch type: {type(batch)}")
-        print(f"Batch[0] type: {type(batch[0]) if isinstance(batch, (list, tuple)) else 'N/A'}")
-        print(f"Batch length: {len(batch) if isinstance(batch, (list, tuple)) else 'N/A'}")
+        # print(f"Batch type: {type(batch)}")
+        # print(f"Batch[0] type: {type(batch[0]) if isinstance(batch, (list, tuple)) else 'N/A'}")
+        # print(f"Batch length: {len(batch) if isinstance(batch, (list, tuple)) else 'N/A'}")
 
         # Check if batch is a list or tuple
-        print(f"Batch content: {batch}")
+        # print(f"Batch content: {batch}")
         if isinstance(batch[0], Experience):
             # Unpack Experience objects if present
             states = np.array([exp.obs for exp in batch])

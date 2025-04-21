@@ -8,7 +8,9 @@ class OfflineDataset:
     def __init__(self, file_path):
         """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
-        print("Shape of observations before squeezing:", np.array(self.file["observations"]).shape)
+        print(
+            "\nShape of observations before squeezing:", np.array(self.file["observations"]).shape
+        )
         # if statement for different dataset shapes
         if np.array(self.file["observations"]).shape == (100000, 4):
             self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
