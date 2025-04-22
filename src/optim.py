@@ -103,11 +103,20 @@ class GAOptimizer:
         # terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
 
         # Convert to PyTorch tensors
-        states = torch.tensor(states, dtype=torch.float32).to(device)
-        actions = torch.tensor(actions, dtype=torch.int64).to(device)
-        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
-        next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
-        terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
+
+        # NEW
+        states = torch.from_numpy(np.array(states)).float().to(device)
+        actions = torch.from_numpy(np.array(actions)).long().to(device)
+        rewards = torch.from_numpy(np.array(rewards)).float().to(device)
+        next_states = torch.from_numpy(np.array(next_states)).float().to(device)
+        terminals = torch.from_numpy(np.array(terminals)).float().to(device)
+
+        # OLD
+        # states = torch.tensor(states, dtype=torch.float32).to(device)
+        # actions = torch.tensor(actions, dtype=torch.int64).to(device)
+        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
+        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
+        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
 
         q_values = (
             self.model(states).gather(1, actions.view(-1, 1)).squeeze()
