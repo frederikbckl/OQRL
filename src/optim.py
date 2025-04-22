@@ -12,8 +12,8 @@ class GAOptimizer:
     def __init__(
         self,
         model,
-        population_size=15,
-        num_generations=5,
+        population_size=20,
+        num_generations=10,
         mutation_rate=0.1,
         crossover_rate=0.5,
     ):

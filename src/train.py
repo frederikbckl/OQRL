@@ -33,7 +33,7 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.2  # Fraction of the dataset to use for training
+    subset_fraction = 0.1  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
     batch_size = 64
     subset = dataset.sample(subset_size)
@@ -50,6 +50,9 @@ def run_train(env_name, num_epochs, seed):
         print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
         print("--------------------------------\n")
 
+        # Reset update_counter
+        agent.update_counter = 0
+
         # Sample a fresh subset from the full dataset
         subset = dataset.sample(subset_size)
         print(f"Sampled {len(subset)} experiences for this epoch.")
@@ -57,7 +60,6 @@ def run_train(env_name, num_epochs, seed):
         print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
-        # batch_size = 64
         last_logged_percentage = 0
         processed_samples = 0
 
@@ -70,15 +72,8 @@ def run_train(env_name, num_epochs, seed):
             if len(batch) == 0:
                 continue
 
-            # print(f"Actual batch size: {len(batch)}")
-
             # Process batch
-            # states, actions, rewards, next_states, terminals = batch
             states, actions, rewards, next_states, terminals = zip(*batch)
-
-            # print(
-            #     f"Processing batch {batch_idx}/{max_batches} with {len(states)} samples...",
-            # )
 
             # Store in replay memory
             for j in range(len(states)):
@@ -90,17 +85,10 @@ def run_train(env_name, num_epochs, seed):
             def loss_fn(q, target):
                 return torch.nn.functional.mse_loss(q, target)
 
-            # max_batches = len(subset) // batch_size + int(len(subset) % batch_size != 0)
-            print(
-                f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",
-            )
-
-            # Run GA periodically instead of every batch
-            # if step % 10 == 0:
-            #     print(f"OPTIMIZE CALLED at batch index {step}")
-            #     start = time.time()
-            #     agent.optimizer.optimize(loss_fn, batch)
-            #     print(f"GA Optimization took {time.time() - start:.2f} seconds")
+            if step % 32 == 0:
+                print(
+                    f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",
+                )
 
             # Update agent
             agent.update()
@@ -109,7 +97,6 @@ def run_train(env_name, num_epochs, seed):
             batch_reward = sum(rewards)
             epoch_reward += batch_reward  # .item()
 
-            ##NEW CODE
             # Accumulate total samples processed
             processed_samples += len(states)
             current_percentage = (processed_samples / total_samples) * 100

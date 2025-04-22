@@ -81,7 +81,7 @@ class DQNAgent:
         self.replay_capacity = replay_capacity
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.update_counter = 0  # track how many times update() was called
-        self.update_frequency = 16  # optimize every X updates
+        self.update_frequency = 64  # optimize every X updates
 
         # Initialize VQC policy network
         self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)

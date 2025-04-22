@@ -10,6 +10,7 @@ def main():
     env_name = "CartPole-v1"
     num_epochs = 5
     seed = 0
+
     # Start training
     run_train(env_name, num_epochs, seed)
 
