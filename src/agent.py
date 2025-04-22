@@ -97,17 +97,6 @@ class DQNAgent:
         self.optimizer = GAOptimizer(model=self.policy_net)
         self.loss_fn = nn.MSELoss()
 
-        # Metaheuristic optimizer (previously used Adam)
-        # self.optimizer = SimulatedAnnealing(
-        #     params=self.policy_net.parameters(),
-        #     init_temp=1.0,
-        #     cooling_rate=0.99,
-        #     min_temp=0.1,
-        # )
-
-        # Loss function remains for computing the difference (optional)
-        # self.loss_fn = lambda q_values, targets: torch.mean((q_values - targets) ** 2).item()
-
         # Replay memory
         self.memory = ReplayMemory(replay_capacity)
 
@@ -120,7 +109,6 @@ class DQNAgent:
             q_values = self.policy_net(state_tensor)
         return q_values.argmax().item()
 
-    # NEW UPDATE METHOD (GPT)
     def update(self):
         """Update the policy network using a batch of experiences."""
         if len(self.memory) < self.batch_size:
@@ -153,43 +141,5 @@ class DQNAgent:
 
         # Run GA optimization only every N updates
         if self.update_counter % self.update_frequency == 0:
-            print(f"[UPDATE] Performing GA optimization at step {self.update_counter}")
+            print(f"[UPDATE] Performing GA optimization at batch {self.update_counter}")
             self.optimizer.optimize(loss_fn, batch)
-
-    # OLD UPDATE METHOD
-    # def update(self):
-    #     """Update the policy network using a batch of experiences."""
-    #     if len(self.memory) < self.batch_size:
-    #         return
-
-    #     # Sample a batch from memory
-    #     batch = self.memory.sample(self.batch_size)
-    #     # print(batch)
-    #     # print(len(batch))
-
-    #     # Unpack batch into individual tensors
-    #     states = torch.stack([exp.obs for exp in batch]).to(self.device)
-    #     actions = torch.stack([exp.action for exp in batch]).to(self.device)
-    #     rewards = torch.stack([exp.reward for exp in batch]).to(self.device)
-    #     next_states = torch.stack([exp.next_obs for exp in batch]).to(self.device)
-    #     terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
-
-    #     # Compute Q-values for current states and actions
-    #     q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
-
-    #     # Compute next Q-values only once (no gradients required)
-    #     with torch.no_grad():
-    #         next_q_values = self.target_net(next_states).max(1)[0]
-
-    #     # Compute targets
-    #     targets = rewards + (1 - terminals) * self.gamma * next_q_values
-
-    #     # Define the loss function for metaheuristic optimization
-    #     loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
-
-    #     # Perform metaheuristic optimization
-    #     self.optimizer.optimize(loss_fn, batch)  # use optimize() instead of step()
-
-    # def update_target(self):
-    #     """Update the target network."""
-    #     self.target_net.load_state_dict(self.policy_net.state_dict())

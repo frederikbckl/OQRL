@@ -39,12 +39,7 @@ class GAOptimizer:
         for param, ind_param in zip(self.model.parameters(), individual):
             param.data.copy_(ind_param)
 
-        # print(f"Batch type: {type(batch)}")
-        # print(f"Batch[0] type: {type(batch[0]) if isinstance(batch, (list, tuple)) else 'N/A'}")
-        # print(f"Batch length: {len(batch) if isinstance(batch, (list, tuple)) else 'N/A'}")
-
         # Check if batch is a list or tuple
-        # print(f"Batch content: {batch}")
         if isinstance(batch[0], Experience):
             # Unpack Experience objects if present
             states = np.array([exp.obs for exp in batch])
@@ -53,11 +48,7 @@ class GAOptimizer:
             next_states = np.array([exp.next_obs for exp in batch])
             terminals = np.array([exp.terminated for exp in batch])
         else:
-            # states, actions, rewards, next_states, terminals = batch
             states, actions, rewards, next_states, terminals = zip(*batch)
-
-        # Unpack batch assuming it's a tuple of NumPy arrays or PyTorch tensors
-        # states, actions, rewards, next_states, terminals = batch
 
         # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
         states = (
@@ -86,37 +77,12 @@ class GAOptimizer:
             else torch.tensor(terminals, dtype=torch.float32).to(device)
         )
 
-        # if isinstance(batch[0], np.ndarray):  # If batch contains NumPy arrays directly
-        #     states, actions, rewards, next_states, terminals = batch
-        # else:  # If batch contains Experience objects
-        #     states = np.array([exp.obs for exp in batch])
-        #     actions = np.array([exp.action for exp in batch])
-        #     rewards = np.array([exp.reward for exp in batch])
-        #     next_states = np.array([exp.next_obs for exp in batch])
-        #     terminals = np.array([exp.done for exp in batch])
-
-        # Convert to PyTorch tensors
-        # states = torch.tensor(states, dtype=torch.float32).to(device)
-        # actions = torch.tensor(actions, dtype=torch.int64).to(device)
-        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
-        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
-        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
-
-        # Convert to PyTorch tensors
-
-        # NEW
+        # Convert to PyTorch tensors (using NumPy arrays before creating tensors to avoid warnings)
         states = torch.from_numpy(np.array(states)).float().to(device)
         actions = torch.from_numpy(np.array(actions)).long().to(device)
         rewards = torch.from_numpy(np.array(rewards)).float().to(device)
         next_states = torch.from_numpy(np.array(next_states)).float().to(device)
         terminals = torch.from_numpy(np.array(terminals)).float().to(device)
-
-        # OLD
-        # states = torch.tensor(states, dtype=torch.float32).to(device)
-        # actions = torch.tensor(actions, dtype=torch.int64).to(device)
-        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
-        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
-        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
 
         q_values = (
             self.model(states).gather(1, actions.view(-1, 1)).squeeze()
@@ -146,7 +112,7 @@ class GAOptimizer:
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""
         for generation in range(self.num_generations):
-            print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")
+            # print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")
             # Evaluate fitness for each individual
             fitness = [self._evaluate_fitness(ind, loss_fn, batch) for ind in self.population]
 
@@ -180,7 +146,7 @@ class GAOptimizer:
             self.population = next_population[: self.population_size]
 
         # delete this log later
-        print("Finished GA optimization for batch")
+        # print("Finished GA optimization for batch")
 
         # Load the best individual's weights into the model
         if self.best_individual is not None:
@@ -201,67 +167,3 @@ class GAOptimizer:
     #         key=lambda ind: self._evaluate_fitness(ind, loss_fn, batch),
     #     )
     #     return sorted_population[:elite_size]  # Keep the best ones
-
-
-# class SimulatedAnnealing:
-#     """Simulated Annealing Optimizer."""
-
-#     def __init__(
-#         self,
-#         params: Union[Iterable[torch.Tensor], Iterable[Dict[str, Any]]],
-#         init_temp: float,
-#         cooling_rate: float,
-#         min_temp: float,
-#     ):
-#         """Initialize the SimulatedAnnealing optimizer.
-
-#         Args:
-#             params: Parameters to optimize.
-#             init_temp: Initial temperature for annealing.
-#             cooling_rate: Cooling rate for temperature decay (0 < cooling_rate < 1).
-#             min_temp: Minimum temperature.
-
-#         """
-#         self.params = list(params)
-#         self.temperature = init_temp
-#         self.cooling_rate = cooling_rate
-#         self.min_temp = min_temp
-#         self.state = [p.clone() for p in self.params]
-
-#     def perturb(self):
-#         """Perturb parameters based on the current temperature."""
-#         with torch.no_grad():
-#             for param in self.params:
-#                 noise = torch.randn_like(param) * self.temperature
-#                 param.add_(noise)
-
-#     def step(self, eval_func: Callable[[], float]):
-#         """Perform one optimization step using Simulated Annealing.
-
-#         Args:
-#             eval_func: A function that evaluates the current loss.
-
-#         """
-#         # Save current state
-#         current_loss = eval_func()
-#         current_params = [p.clone() for p in self.params]
-
-#         # Apply perturbation
-#         self.perturb()
-#         new_loss = eval_func()
-
-#         if new_loss < current_loss:
-#             # Accept the new state
-#             self.state = [p.clone() for p in self.params]
-#         else:
-#             # Accept worse states with a certain probability
-#             acceptance_probability = torch.exp(
-#                 torch.tensor((current_loss - new_loss) / self.temperature),
-#             ).item()
-#             if torch.rand(1).item() > acceptance_probability:
-#                 # Revert to the previous state
-#                 for param, saved in zip(self.params, current_params):
-#                     param.copy_(saved)
-
-#         # Cool down the temperature
-#         self.temperature = max(self.min_temp, self.temperature * self.cooling_rate)

@@ -1,3 +1,5 @@
+import math
+
 import gymnasium as gym
 import torch
 
@@ -67,8 +69,6 @@ def run_train(env_name, num_epochs, seed):
 
         for step, batch_start in enumerate(range(0, len(subset), batch_size), start=1):
             batch = subset[batch_start : batch_start + batch_size]
-            # for batch_idx in range(0, len(subset), batch_size):
-            #     batch = subset[batch_idx : batch_idx + batch_size]
             if len(batch) == 0:
                 continue
 
@@ -85,10 +85,7 @@ def run_train(env_name, num_epochs, seed):
             def loss_fn(q, target):
                 return torch.nn.functional.mse_loss(q, target)
 
-            if step % 32 == 0:
-                print(
-                    f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",
-                )
+            # (f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",)
 
             # Update agent
             agent.update()
@@ -101,12 +98,14 @@ def run_train(env_name, num_epochs, seed):
             processed_samples += len(states)
             current_percentage = (processed_samples / total_samples) * 100
 
-            if current_percentage >= last_logged_percentage + 5:
+            log_interval = 10  # every 10% of the subset
+            subset_log_step = math.ceil(subset_size * log_interval / 100)
+
+            if processed_samples % subset_log_step < batch_size:
                 print(
-                    f"Processed {processed_samples}/{total_samples} samples "
-                    f"({current_percentage:.1f}%)",
+                    f"Processed {processed_samples}/{subset_size} samples "
+                    f"({(processed_samples / subset_size) * 100:.1f}%) of current subset",
                 )
-                last_logged_percentage += 5
 
             batch_idx += 1
 
