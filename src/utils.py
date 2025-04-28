@@ -7,12 +7,26 @@ import torch
 class Experience:
     """Class to store a single transition."""
 
+    # NEW: add device
+    # Set device (either cuda if available, else cpu)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # NEW: try to get rid of warnings
     def __init__(self, obs, action, reward, next_obs, terminated):
-        self.obs = torch.tensor(obs, dtype=torch.float32)
-        self.action = torch.tensor(action, dtype=torch.long)
-        self.reward = torch.tensor(reward, dtype=torch.float32)
-        self.next_obs = torch.tensor(next_obs, dtype=torch.float32)
-        self.terminated = torch.tensor(terminated, dtype=torch.float32)
+        self.obs = (
+            obs.detach().clone().to(self.device)
+        )  # ✔️ Ensure obs is moved to the correct device and detached from the computation graph
+        self.action = action.detach().clone().to(self.device)
+        self.reward = reward.detach().clone().to(self.device)
+        self.next_obs = next_obs.detach().clone().to(self.device)
+        self.terminated = terminated.detach().clone().to(self.device)
+
+    # def __init__(self, obs, action, reward, next_obs, terminated):
+    #     self.obs = torch.tensor(obs, dtype=torch.float32)
+    #     self.action = torch.tensor(action, dtype=torch.long)
+    #     self.reward = torch.tensor(reward, dtype=torch.float32)
+    #     self.next_obs = torch.tensor(next_obs, dtype=torch.float32)
+    #     self.terminated = torch.tensor(terminated, dtype=torch.float32)
 
 
 class ReplayMemory:
