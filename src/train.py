@@ -80,6 +80,43 @@ def run_train(env_name, num_epochs, seed):
             # Process batch
             states, actions, rewards, next_states, terminals = zip(*batch)
 
+            # NEW
+            # Convert each element in the batch to a tensor
+            states = [
+                torch.tensor(state, dtype=torch.float32)
+                if not isinstance(state, torch.Tensor)
+                else state
+                for state in states
+            ]
+
+            actions = [
+                torch.tensor(action, dtype=torch.int64)
+                if not isinstance(action, torch.Tensor)
+                else action
+                for action in actions
+            ]
+
+            rewards = [
+                torch.tensor(reward, dtype=torch.float32)
+                if not isinstance(reward, torch.Tensor)
+                else reward
+                for reward in rewards
+            ]
+
+            next_states = [
+                torch.tensor(next_state, dtype=torch.float32)
+                if not isinstance(next_state, torch.Tensor)
+                else next_state
+                for next_state in next_states
+            ]
+
+            terminals = [
+                torch.tensor(terminal, dtype=torch.float32)
+                if not isinstance(terminal, torch.Tensor)
+                else terminal
+                for terminal in terminals
+            ]
+
             # Move each tensor in the batch to the appropriate device
             states = torch.stack(states).to(device)
             actions = torch.stack(actions).to(device)
