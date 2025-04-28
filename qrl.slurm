@@ -32,5 +32,5 @@ NUM_EPOCHS=2
 # source ~/your_virtualenv/bin/activate  # optional
 
 # Run your Python script
-python3 main.py --env_name $ENV_NAME --num_epochs $NUM_EPOCHS --seed $SEED
+python3 src/main.py --env_name $ENV_NAME --num_epochs $NUM_EPOCHS --seed $SEED
 
