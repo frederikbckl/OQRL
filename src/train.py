@@ -16,6 +16,9 @@ def run_train(env_name, num_epochs, seed):
     # Initialize environment
     env = gym.make(env_name)
 
+    # Set device (either cuda if available, else cpu)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     # Initialize the agent
     agent = DQNAgent(
         obs_dim=4,
@@ -77,11 +80,31 @@ def run_train(env_name, num_epochs, seed):
             # Process batch
             states, actions, rewards, next_states, terminals = zip(*batch)
 
-            # Store in replay memory
+            # Move each tensor in the batch to the appropriate device
+            states = torch.stack(states).to(device)
+            actions = torch.stack(actions).to(device)
+            rewards = torch.stack(rewards).to(device)
+            next_states = torch.stack(next_states).to(device)
+            terminals = torch.stack(terminals).to(device)
+
+            # Store in replay memory and move tensors to the appropriate device
             for j in range(len(states)):
                 agent.memory.push(
-                    Experience(states[j], actions[j], rewards[j], next_states[j], terminals[j]),
+                    Experience(
+                        states[j].to(device),
+                        actions[j].to(device),
+                        rewards[j].to(device),
+                        next_states[j].to(device),
+                        terminals[j].to(device),
+                    ),
                 )
+
+            # OLD
+            # store in replay memory
+            # for j in range(len(states)):
+            #     agent.memory.push(
+            #         Experience(states[j], actions[j], rewards[j], next_states[j], terminals[j]),
+            #     )
 
             # Update agent using GAOptimizer
             def loss_fn(q, target):

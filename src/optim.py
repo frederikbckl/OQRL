@@ -50,6 +50,21 @@ class GAOptimizer:
         else:
             states, actions, rewards, next_states, terminals = zip(*batch)
 
+        # NEW APPROACH (q_values afterwards: comment out what's in between)
+        # Convert to PyTorch tensors and move to the correct device
+        # states = torch.tensor(states, dtype=torch.float32).to(device) if not isinstance(states, torch.Tensor) else states.to(device)
+        # actions = torch.tensor(actions, dtype=torch.int64).to(device) if not isinstance(actions, torch.Tensor) else actions.to(device)
+        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device) if not isinstance(rewards, torch.Tensor) else rewards.to(device)
+        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device) if not isinstance(next_states, torch.Tensor) else next_states.to(device)
+        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device) if not isinstance(terminals, torch.Tensor) else terminals.to(device)
+
+        # # Ensure the tensors are on the same device (either CPU or GPU)
+        # states = states.to(device)
+        # actions = actions.to(device)
+        # rewards = rewards.to(device)
+        # next_states = next_states.to(device)
+        # terminals = terminals.to(device)
+
         # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
         states = (
             states.clone().detach().to(device)
