@@ -16,4 +16,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env_name", type=str, required=True)
+    parser.add_argument("--num_epochs", type=int, required=True)
+    parser.add_argument("--seed", type=int, required=True)
+    args = parser.parse_args()
+
+    # Call your training function here
+    run_train(env_name=args.env_name, num_epochs=args.num_epochs, seed=args.seed)

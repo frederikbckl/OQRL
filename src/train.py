@@ -55,6 +55,8 @@ def run_train(env_name, num_epochs, seed):
         # Reset update_counter
         agent.update_counter = 0
 
+        print(f"Max batches this epoch: {subset_size // batch_size}")
+
         # Sample a fresh subset from the full dataset
         subset = dataset.sample(subset_size)
         print(f"Sampled {len(subset)} experiences for this epoch.")
