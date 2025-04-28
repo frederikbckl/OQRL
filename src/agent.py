@@ -26,7 +26,9 @@ class VQC(nn.Module):
         #     torch.rand(n_layers * input_dim * 3, requires_grad=True),
         # )  # forAdam
         self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
-        self.device = torch.device("cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu",
+        )  # ✔️ Move device assignment
 
         self.dev = qml.device("default.qubit", wires=input_dim)
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
@@ -127,7 +129,12 @@ class DQNAgent:
         terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
 
         # Compute Q-values for current states and actions
-        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
+        q_values = (
+            self.policy_net(states.to(self.device))
+            .gather(1, actions.unsqueeze(1))
+            .to(self.device)
+            .squeeze()
+        )  # added device, might have to delete the last .squeeze()
 
         # Compute next Q-values only once (no gradients required)
         with torch.no_grad():
