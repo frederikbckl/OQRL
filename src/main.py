@@ -26,3 +26,6 @@ if __name__ == "__main__":
 
     # Call your training function here
     run_train(env_name=args.env_name, num_epochs=args.num_epochs, seed=args.seed)
+
+    # remove the following comment to run manually (not using SLURM)
+    # main()
