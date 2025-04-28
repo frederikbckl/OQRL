@@ -130,10 +130,8 @@ class DQNAgent:
 
         # Compute Q-values for current states and actions
         q_values = (
-            self.policy_net(states.to(self.device))
-            .gather(1, actions.unsqueeze(1))
-            .to(self.device)
-            .squeeze()
+            self.policy_net(states.to(self.device)).gather(1, actions.unsqueeze(1)).to(self.device)
+            # .squeeze()
         )  # added device, might have to delete the last .squeeze()
 
         # Compute next Q-values only once (no gradients required)
