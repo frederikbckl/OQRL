@@ -1,11 +1,17 @@
 #!/bin/bash
 #SBATCH --job-name=quantum_rl
-#SBATCH --output=output_%A_%a.txt
-#SBATCH --error=error_%A_%a.txt
+#SBATCH --output=logs/output_%A_%a.txt
+#SBATCH --error=logs/error_%A_%a.txt
 #SBATCH --ntasks=1
 #SBATCH --time=03:00:00
 #SBATCH --partition=All
 #SBATCH --array=0-14
+
+# Move into the right project folder
+cd ~/Desktop/Programming/BachelorThesis/OQRL
+
+# Make sure logs folder exists
+mkdir -p logs
 
 # Manually set safe TMPDIR (optional)
 export TMPDIR=/home/b/bickel/tmp
