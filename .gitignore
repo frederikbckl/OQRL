@@ -174,3 +174,6 @@ Temporary Items
 /src/wandb*
 
 .idea
+
+# manually added (FB)
+cip-venv/
