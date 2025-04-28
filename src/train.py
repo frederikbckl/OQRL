@@ -149,6 +149,10 @@ def run_train(env_name, num_epochs, seed):
 
             # (f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",)
 
+            # NEW: might be dead code but worth a try. Delete if not needed
+            # Ensure that actions are moved to the correct device before calling agent.update
+            actions = torch.tensor(actions).to(device)
+
             # Update agent
             agent.update()
 
