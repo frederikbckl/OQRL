@@ -1,2 +1,8 @@
 ruff==0.7.0
 pipreqs==0.4.13
+gymnasium
+torch>=2.0.0
+numpy
+matplotlib
+pennylane>=0.32.0
+pennylane-lightning>=0.32.0

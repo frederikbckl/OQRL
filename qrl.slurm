@@ -10,6 +10,9 @@
 # Move into the right project folder
 cd ~/Desktop/Programming/BachelorThesis/OQRL
 
+# Activate your virtual environment
+# source ~/Desktop/Programming/BachelorThesis/OQRL/cip-venv/bin/activate
+
 # Make sure logs folder exists
 mkdir -p logs
 
