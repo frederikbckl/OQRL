@@ -4,7 +4,6 @@ import numpy as np
 import torch
 
 from config import device
-from utils import Experience
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -34,52 +33,32 @@ class GAOptimizer:
             param.data.clone() + 0.1 * torch.randn_like(param) for param in self.model.parameters()
         ]
 
+    # NEW TRY _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
         """Evaluate the fitness of an individual."""
-        # Load the individual's weights into the model
-        for param, ind_param in zip(self.model.parameters(), individual):
-            param.data.copy_(ind_param)
+        # Extract the batch elements
+        states, actions, rewards, next_states, terminals = zip(*batch)
 
-        # Check if batch is a list or tuple
-        if isinstance(batch[0], Experience):
-            # Unpack Experience objects if present
-            # OLD: without using .cpu().numpy()
-            # states = np.array([exp.obs for exp in batch])
-            # actions = np.array([exp.action for exp in batch])
-            # rewards = np.array([exp.reward for exp in batch])
-            # next_states = np.array([exp.next_obs for exp in batch])
-            # terminals = np.array([exp.terminated for exp in batch])
+        # Convert to tensors and move to the correct device (GPU or CPU)
+        states = torch.tensor(states, dtype=torch.float32).to(device)
+        actions = torch.tensor(actions, dtype=torch.int64).to(device)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
+        next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
+        terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
 
-            # NEW: with using .cpu().numpy()
-            states = np.array([exp.obs.cpu() for exp in batch])
-            actions = np.array([exp.action.cpu() for exp in batch])
-            rewards = np.array([exp.reward.cpu() for exp in batch])
-            next_states = np.array([exp.next_obs.cpu() for exp in batch])
-            terminals = np.array([exp.terminated.cpu() for exp in batch])
+        # Log the device of each tensor to ensure they are on the correct device
+        print(f"Before numpy conversion - states device: {states.device}")
+        print(f"Before numpy conversion - actions device: {actions.device}")
+        print(f"Before numpy conversion - rewards device: {rewards.device}")
+        print(f"Before numpy conversion - next_states device: {next_states.device}")
+        print(f"Before numpy conversion - terminals device: {terminals.device}")
 
-            # print(f"Before numpy conversion - states device: {states.device}")
-            # print(f"Before numpy conversion - actions device: {actions.device}")
-            # print(f"Before numpy conversion - rewards device: {rewards.device}")
-            # print(f"Before numpy conversion - next_states device: {next_states.device}")
-            # print(f"Before numpy conversion - terminals device: {terminals.device}")
-
-        else:
-            states, actions, rewards, next_states, terminals = zip(*batch)
-
-        # NEW APPROACH (q_values afterwards: comment out what's in between)
-        # Convert to PyTorch tensors and move to the correct device
-        # states = torch.tensor(states, dtype=torch.float32).to(device) if not isinstance(states, torch.Tensor) else states.to(device)
-        # actions = torch.tensor(actions, dtype=torch.int64).to(device) if not isinstance(actions, torch.Tensor) else actions.to(device)
-        # rewards = torch.tensor(rewards, dtype=torch.float32).to(device) if not isinstance(rewards, torch.Tensor) else rewards.to(device)
-        # next_states = torch.tensor(next_states, dtype=torch.float32).to(device) if not isinstance(next_states, torch.Tensor) else next_states.to(device)
-        # terminals = torch.tensor(terminals, dtype=torch.float32).to(device) if not isinstance(terminals, torch.Tensor) else terminals.to(device)
-
-        # # Ensure the tensors are on the same device (either CPU or GPU)
-        # states = states.to(device)
-        # actions = actions.to(device)
-        # rewards = rewards.to(device)
-        # next_states = next_states.to(device)
-        # terminals = terminals.to(device)
+        # Convert to numpy after moving to CPU
+        states_cpu = states.cpu().numpy()
+        actions_cpu = actions.cpu().numpy()
+        rewards_cpu = rewards.cpu().numpy()
+        next_states_cpu = next_states.cpu().numpy()
+        terminals_cpu = terminals.cpu().numpy()
 
         # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
         states = (
@@ -127,6 +106,89 @@ class GAOptimizer:
         loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
         # print(f"Fitness computed: {-loss.item()}")  # Debugging
         return -loss.item()  # Negative loss as fitness (to maximize reward)
+
+    # OLD _evaluate_fitness
+    # def _evaluate_fitness(self, individual, loss_fn, batch):
+    #     """Evaluate the fitness of an individual."""
+
+    #     # Load the individual's weights into the model
+    #     for param, ind_param in zip(self.model.parameters(), individual):
+    #         param.data.copy_(ind_param)
+
+    #     # Check if batch is a list or tuple
+    #     if isinstance(batch[0], Experience):
+    #         # Unpack Experience objects if present
+    #         # OLD: without using .cpu().numpy()
+    #         states = np.array([exp.obs for exp in batch])
+    #         actions = np.array([exp.action for exp in batch])
+    #         rewards = np.array([exp.reward for exp in batch])
+    #         next_states = np.array([exp.next_obs for exp in batch])
+    #         terminals = np.array([exp.terminated for exp in batch])
+
+    #     else:
+    #         states, actions, rewards, next_states, terminals = zip(*batch)
+
+    #     # NEW APPROACH (q_values afterwards: comment out what's in between)
+    #     # Convert to PyTorch tensors and move to the correct device
+    #     # states = torch.tensor(states, dtype=torch.float32).to(device) if not isinstance(states, torch.Tensor) else states.to(device)
+    #     # actions = torch.tensor(actions, dtype=torch.int64).to(device) if not isinstance(actions, torch.Tensor) else actions.to(device)
+    #     # rewards = torch.tensor(rewards, dtype=torch.float32).to(device) if not isinstance(rewards, torch.Tensor) else rewards.to(device)
+    #     # next_states = torch.tensor(next_states, dtype=torch.float32).to(device) if not isinstance(next_states, torch.Tensor) else next_states.to(device)
+    #     # terminals = torch.tensor(terminals, dtype=torch.float32).to(device) if not isinstance(terminals, torch.Tensor) else terminals.to(device)
+
+    #     # # Ensure the tensors are on the same device (either CPU or GPU)
+    #     # states = states.to(device)
+    #     # actions = actions.to(device)
+    #     # rewards = rewards.to(device)
+    #     # next_states = next_states.to(device)
+    #     # terminals = terminals.to(device)
+
+    #     # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
+    #     states = (
+    #         states.clone().detach().to(device)
+    #         if isinstance(states, torch.Tensor)
+    #         else torch.tensor(states, dtype=torch.float32).to(device)
+    #     )
+    #     actions = (
+    #         actions.clone().detach().to(device)
+    #         if isinstance(actions, torch.Tensor)
+    #         else torch.tensor(actions, dtype=torch.int64).to(device)
+    #     )
+    #     rewards = (
+    #         rewards.clone().detach().to(device)
+    #         if isinstance(rewards, torch.Tensor)
+    #         else torch.tensor(rewards, dtype=torch.float32).to(device)
+    #     )
+    #     next_states = (
+    #         next_states.clone().detach().to(device)
+    #         if isinstance(next_states, torch.Tensor)
+    #         else torch.tensor(next_states, dtype=torch.float32).to(device)
+    #     )
+    #     terminals = (
+    #         terminals.clone().detach().to(device)
+    #         if isinstance(terminals, torch.Tensor)
+    #         else torch.tensor(terminals, dtype=torch.float32).to(device)
+    #     )
+
+    #     # Convert to PyTorch tensors (using NumPy arrays before creating tensors to avoid warnings)
+    #     states = torch.from_numpy(np.array(states)).float().to(device)
+    #     actions = torch.from_numpy(np.array(actions)).long().to(device)
+    #     rewards = torch.from_numpy(np.array(rewards)).float().to(device)
+    #     next_states = torch.from_numpy(np.array(next_states)).float().to(device)
+    #     terminals = torch.from_numpy(np.array(terminals)).float().to(device)
+
+    #     print(f"States device before gather in optim.py: {states.device}")
+    #     print(f"Actions device before gather in optim.py: {actions.device}")
+
+    #     q_values = (
+    #         self.model(states).gather(1, actions.view(-1, 1)).squeeze()
+    #     )  # Q-values for selected actions
+    #     next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
+    #     targets = rewards + (1 - terminals) * 0.99 * next_q_values  # Bellman equation
+
+    #     loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
+    #     # print(f"Fitness computed: {-loss.item()}")  # Debugging
+    #     return -loss.item()  # Negative loss as fitness (to maximize reward)
 
     def _crossover(self, parent1, parent2):
         """Perform crossover between two parents."""
