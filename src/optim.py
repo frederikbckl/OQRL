@@ -37,11 +37,46 @@ class GAOptimizer:
     def _evaluate_fitness(self, individual, loss_fn, batch):
         """Evaluate the fitness of an individual."""
         # Unpack Experience objects directly
-        states = torch.tensor([exp.obs for exp in batch], dtype=torch.float32).to(device)
-        actions = torch.tensor([exp.action for exp in batch], dtype=torch.int64).to(device)
-        rewards = torch.tensor([exp.reward for exp in batch], dtype=torch.float32).to(device)
-        next_states = torch.tensor([exp.next_obs for exp in batch], dtype=torch.float32).to(device)
-        terminals = torch.tensor([exp.terminated for exp in batch], dtype=torch.float32).to(device)
+        states = torch.stack(
+            [
+                exp.obs
+                if isinstance(exp.obs, torch.Tensor)
+                else torch.tensor(exp.obs, dtype=torch.float32)
+                for exp in batch
+            ],
+        ).to(device)
+        actions = torch.stack(
+            [
+                exp.action
+                if isinstance(exp.action, torch.Tensor)
+                else torch.tensor(exp.action, dtype=torch.int64)
+                for exp in batch
+            ],
+        ).to(device)
+        rewards = torch.stack(
+            [
+                exp.reward
+                if isinstance(exp.reward, torch.Tensor)
+                else torch.tensor(exp.reward, dtype=torch.float32)
+                for exp in batch
+            ],
+        ).to(device)
+        next_states = torch.stack(
+            [
+                exp.next_obs
+                if isinstance(exp.next_obs, torch.Tensor)
+                else torch.tensor(exp.next_obs, dtype=torch.float32)
+                for exp in batch
+            ],
+        ).to(device)
+        terminals = torch.stack(
+            [
+                exp.terminated
+                if isinstance(exp.terminated, torch.Tensor)
+                else torch.tensor(exp.terminated, dtype=torch.float32)
+                for exp in batch
+            ],
+        ).to(device)
 
         # Log the device of each tensor to ensure they are on the correct device
         print(f"Before numpy conversion - states device: {states.device}")
