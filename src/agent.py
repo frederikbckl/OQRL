@@ -143,11 +143,22 @@ class DQNAgent:
         print(f"States device before gather in agent.py: {states.device}")
         print(f"Actions device before gather in agent.py: {actions.device}")
 
+        print(f"States device before policy_net: {states.device}")
+        print(f"Actions device before policy_net: {actions.device}")
+
+        model_output = self.policy_net(states)
+        print(f"Model output device: {model_output.device}")
+
+        print(f"Before gather - q_values device: {model_output.device}")
+        print(f"Before gather - actions device: {actions.device}")
+
         # Compute Q-values for current states and actions (after states and actions are on same device)
         q_values = self.policy_net(states.to(device)).gather(
             1,
             actions.unsqueeze(1).to(device),
         )
+
+        print(f"q_values device - after gather: {q_values.device}")
 
         # Compute Q-values for current states and actions
         # q_values = (
