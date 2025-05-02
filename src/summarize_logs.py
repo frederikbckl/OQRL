@@ -2,7 +2,7 @@ import os
 import re
 
 # Path to the logs folder
-LOGS_FOLDER = "logs"
+LOGS_FOLDER = "../logs"
 
 # Regular expression to find final average reward
 average_reward_pattern = re.compile(r"Average Reward:\s+([0-9\.]+)")
