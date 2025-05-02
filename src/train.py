@@ -121,16 +121,16 @@ def run_train(env_name, num_epochs, seed):
             # Move each tensor in the batch to the appropriate device
             # print(f"States device before: {states.device}")
             states = torch.stack(states).to(device)
-            print(f"States device after moving to device: {states.device}")
+            # print(f"States device after moving to device: {states.device}")
             # print(f"Actions device before: {actions.device}")
             actions = torch.stack(actions).to(device)
-            print(f"Actions device after moving to device: {actions.device}")
+            # print(f"Actions device after moving to device: {actions.device}")
             rewards = torch.stack(rewards).to(device)
-            print(f"Rewards device after moving to device: {rewards.device}")
+            # print(f"Rewards device after moving to device: {rewards.device}")
             next_states = torch.stack(next_states).to(device)
-            print(f"Next states device after moving to device: {next_states.device}")
+            # print(f"Next states device after moving to device: {next_states.device}")
             terminals = torch.stack(terminals).to(device)
-            print(f"Terminals device after moving to device: {terminals.device}")
+            # print(f"Terminals device after moving to device: {terminals.device}")
 
             # Store in replay memory and move tensors to the appropriate device
             for j in range(len(states)):
