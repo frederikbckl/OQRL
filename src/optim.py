@@ -100,6 +100,9 @@ class GAOptimizer:
         next_states = torch.from_numpy(np.array(next_states)).float().to(device)
         terminals = torch.from_numpy(np.array(terminals)).float().to(device)
 
+        print(f"States device before gather in optim.py: {states.device}")
+        print(f"Actions device before gather in optim.py: {actions.device}")
+
         q_values = (
             self.model(states).gather(1, actions.view(-1, 1)).squeeze()
         )  # Q-values for selected actions
