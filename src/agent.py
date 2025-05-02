@@ -128,11 +128,17 @@ class DQNAgent:
         next_states = torch.stack([exp.next_obs for exp in batch]).to(self.device)
         terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
 
+        # ensure actions and states are both on the same device before computing q_values
+        states = states.to(self.device)
+        actions = actions.to(self.device)
+
+        # Compute Q-values for current states and actions (after states and actions are on same device)
+        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1))
+
         # Compute Q-values for current states and actions
-        q_values = (
-            self.policy_net(states.to(self.device)).gather(1, actions.unsqueeze(1)).to(self.device)
-            # .squeeze()
-        )  # added device, might have to delete the last .squeeze()
+        # q_values = (
+        #     self.policy_net(states.to(self.device)).gather(1, actions.unsqueeze(1)).to(self.device)
+        # )  # added device, might have to delete the last .squeeze()
 
         # Compute next Q-values only once (no gradients required)
         with torch.no_grad():
