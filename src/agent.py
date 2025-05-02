@@ -86,8 +86,8 @@ class DQNAgent:
         self.update_frequency = 64  # optimize every X updates
 
         # Initialize VQC policy network
-        self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
-        self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers)
+        self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers).to(self.device)
+        self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         # Disable gradients for policy_net and target_net
