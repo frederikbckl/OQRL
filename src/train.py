@@ -119,8 +119,12 @@ def run_train(env_name, num_epochs, seed):
             ]
 
             # Move each tensor in the batch to the appropriate device
+            # print(f"States device before: {states.device}")
             states = torch.stack(states).to(device)
+            print(f"States device after: {states.device}")
+            # print(f"Actions device before: {actions.device}")
             actions = torch.stack(actions).to(device)
+            print(f"Actions device after: {actions.device}")
             rewards = torch.stack(rewards).to(device)
             next_states = torch.stack(next_states).to(device)
             terminals = torch.stack(terminals).to(device)
