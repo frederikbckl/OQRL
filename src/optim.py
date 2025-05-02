@@ -150,9 +150,9 @@ class GAOptimizer:
         print(f"optim: After changing model_output - q_values device: {model_output.device}")
         print(f"optim: After changing model_output - actions device: {actions.device}")
 
-        q_values = (
-            model_output(states).gather(1, actions.view(-1, 1)).squeeze()
-        )  # Q-values for selected actions
+        q_values = model_output.gather(
+            1, actions.view(-1, 1)
+        ).squeeze()  # Q-values for selected actions
         next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
         targets = rewards + (1 - terminals) * 0.99 * next_q_values  # Bellman equation
 
