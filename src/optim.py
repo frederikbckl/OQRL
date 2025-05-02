@@ -43,11 +43,26 @@ class GAOptimizer:
         # Check if batch is a list or tuple
         if isinstance(batch[0], Experience):
             # Unpack Experience objects if present
-            states = np.array([exp.obs for exp in batch])
-            actions = np.array([exp.action for exp in batch])
-            rewards = np.array([exp.reward for exp in batch])
-            next_states = np.array([exp.next_obs for exp in batch])
-            terminals = np.array([exp.terminated for exp in batch])
+            # OLD: without using .cpu().numpy()
+            # states = np.array([exp.obs for exp in batch])
+            # actions = np.array([exp.action for exp in batch])
+            # rewards = np.array([exp.reward for exp in batch])
+            # next_states = np.array([exp.next_obs for exp in batch])
+            # terminals = np.array([exp.terminated for exp in batch])
+
+            # NEW: bring tensor to CPU before calling .numpy()
+            states = np.array(
+                [exp.obs.cpu().numpy() for exp in batch],
+            )  # Move to CPU before converting to numpy
+            actions = np.array(
+                [exp.action.cpu().numpy() for exp in batch],
+            )
+            rewards = np.array(
+                [exp.reward.cpu().numpy() for exp in batch],
+            )
+            next_states = np.array([exp.next_obs.cpu().numpy() for exp in batch])
+            terminals = np.array([exp.terminated.cpu().numpy() for exp in batch])
+
         else:
             states, actions, rewards, next_states, terminals = zip(*batch)
 
