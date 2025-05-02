@@ -84,37 +84,37 @@ def run_train(env_name, num_epochs, seed):
             # NEW
             # Convert each element in the batch to a tensor
             states = [
-                torch.tensor(state, dtype=torch.float32)
+                torch.tensor(state, dtype=torch.float32).to(device)
                 if not isinstance(state, torch.Tensor)
-                else state
+                else state.to(device)
                 for state in states
             ]
 
             actions = [
-                torch.tensor(action, dtype=torch.int64)
+                torch.tensor(action, dtype=torch.int64).to(device)
                 if not isinstance(action, torch.Tensor)
-                else action
+                else action.to(device)
                 for action in actions
             ]
 
             rewards = [
-                torch.tensor(reward, dtype=torch.float32)
+                torch.tensor(reward, dtype=torch.float32).to(device)
                 if not isinstance(reward, torch.Tensor)
-                else reward
+                else reward.to(device)
                 for reward in rewards
             ]
 
             next_states = [
-                torch.tensor(next_state, dtype=torch.float32)
+                torch.tensor(next_state, dtype=torch.float32).to(device)
                 if not isinstance(next_state, torch.Tensor)
-                else next_state
+                else next_state.to(device)
                 for next_state in next_states
             ]
 
             terminals = [
-                torch.tensor(terminal, dtype=torch.float32)
+                torch.tensor(terminal, dtype=torch.float32).to(device)
                 if not isinstance(terminal, torch.Tensor)
-                else terminal
+                else terminal.to(device)
                 for terminal in terminals
             ]
 

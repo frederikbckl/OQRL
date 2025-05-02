@@ -111,7 +111,7 @@ class DQNAgent:
             return np.random.randint(self.act_dim)
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         with torch.no_grad():
-            q_values = self.policy_net(state_tensor)
+            q_values = self.policy_net(state_tensor.to(self.device))
         return q_values.argmax().item()
 
     def update(self):
@@ -136,7 +136,9 @@ class DQNAgent:
         actions = actions.to(self.device)
 
         # Compute Q-values for current states and actions (after states and actions are on same device)
-        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1).to(self.device))
+        q_values = self.policy_net(states.to(self.device)).gather(
+            1, actions.unsqueeze(1).to(self.device)
+        )
 
         # Compute Q-values for current states and actions
         # q_values = (

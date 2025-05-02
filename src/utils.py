@@ -15,9 +15,7 @@ class Experience:
 
     # NEW: try to get rid of warnings
     def __init__(self, obs, action, reward, next_obs, terminated):
-        self.obs = (
-            obs.detach().clone().to(device)
-        )  # ✔️ Ensure obs is moved to the correct device and detached from the computation graph
+        self.obs = obs.detach().clone().to(device)
         self.action = action.detach().clone().to(device)
         self.reward = reward.detach().clone().to(device)
         self.next_obs = next_obs.detach().clone().to(device)
