@@ -50,53 +50,18 @@ class GAOptimizer:
             # next_states = np.array([exp.next_obs for exp in batch])
             # terminals = np.array([exp.terminated for exp in batch])
 
-            # NEW v3: convert to numpy and then to tensor
-            # states = torch.from_numpy(np.array([exp.obs.cpu().numpy() for exp in batch])).float().to(device)
-            # actions = torch.from_numpy(np.array([exp.action.cpu().numpy() for exp in batch])).long().to(device)
-            # rewards = torch.from_numpy(np.array([exp.reward.cpu().numpy() for exp in batch])).float().to(device)
-            # next_states = torch.from_numpy(np.array([exp.next_obs.cpu().numpy() for exp in batch])).float().to(device)
-            # terminals = torch.from_numpy(np.array([exp.terminated.cpu().numpy() for exp in batch])).float().to(device)
+            # NEW: with using .cpu().numpy()
+            states = np.array([exp.obs.cpu() for exp in batch])
+            actions = np.array([exp.action.cpu() for exp in batch])
+            rewards = np.array([exp.reward.cpu() for exp in batch])
+            next_states = np.array([exp.next_obs.cpu() for exp in batch])
+            terminals = np.array([exp.terminated.cpu() for exp in batch])
 
-            # NEW v4: convert to numpy in advance
-            # Extract the batch elements (ensure that you unpack the batch properly)
-            states = [exp.obs for exp in batch]
-            actions = [exp.action for exp in batch]
-            rewards = [exp.reward for exp in batch]
-            next_states = [exp.next_obs for exp in batch]
-            terminals = [exp.terminated for exp in batch]
-            # Now, check if they are tensors and move them to CPU before converting to numpy
-            states_cpu = [
-                state.cpu().numpy() if isinstance(state, torch.Tensor) else np.array(state)
-                for state in states
-            ]
-            actions_cpu = [
-                action.cpu().numpy() if isinstance(action, torch.Tensor) else np.array(action)
-                for action in actions
-            ]
-            rewards_cpu = [
-                reward.cpu().numpy() if isinstance(reward, torch.Tensor) else np.array(reward)
-                for reward in rewards
-            ]
-            next_states_cpu = [
-                next_state.cpu().numpy()
-                if isinstance(next_state, torch.Tensor)
-                else np.array(next_state)
-                for next_state in next_states
-            ]
-            terminals_cpu = [
-                terminal.cpu().numpy()
-                if isinstance(terminal, torch.Tensor)
-                else np.array(terminal)
-                for terminal in terminals
-            ]
-            # Convert the lists back to tensors and move them to the correct device
-            states = (
-                torch.from_numpy(np.array(states_cpu)).float().to(device)
-            )  # Ensure to move to device
-            actions = torch.from_numpy(np.array(actions_cpu)).long().to(device)
-            rewards = torch.from_numpy(np.array(rewards_cpu)).float().to(device)
-            next_states = torch.from_numpy(np.array(next_states_cpu)).float().to(device)
-            terminals = torch.from_numpy(np.array(terminals_cpu)).float().to(device)
+            # print(f"Before numpy conversion - states device: {states.device}")
+            # print(f"Before numpy conversion - actions device: {actions.device}")
+            # print(f"Before numpy conversion - rewards device: {rewards.device}")
+            # print(f"Before numpy conversion - next_states device: {next_states.device}")
+            # print(f"Before numpy conversion - terminals device: {terminals.device}")
 
         else:
             states, actions, rewards, next_states, terminals = zip(*batch)
