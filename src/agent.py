@@ -32,8 +32,8 @@ class VQC(nn.Module):
         # )  # ✔️ Move device assignment
 
         self.device = device
-        self.dev = qml.device("default.qubit", wires=input_dim)
-        self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
+        # self.dev = qml.device("default.qubit", wires=input_dim)
+        self.qnode = qml.QNode(self._circuit, self.device, interface="torch")
 
     def _circuit(self, inputs, weights):
         """Define the quantum circuit."""
