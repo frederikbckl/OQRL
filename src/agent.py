@@ -176,8 +176,22 @@ class DQNAgent:
         with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0]
 
+        print(f"Before targets - states device: {states.device}")
+        print(f"Before targets - actions device: {actions.device}")
+        print(f"Before targets - rewards device: {rewards.device}")
+        print(f"Before targets - next_states device: {next_states.device}")
+        print(f"Before targets - terminals device: {terminals.device}")
+
         # Compute targets
-        targets = rewards + (1 - terminals) * self.gamma * next_q_values
+        targets = rewards.to(device) + (1 - terminals.to(device)) * self.gamma * next_q_values.to(
+            device,
+        )
+
+        print(f"After targets - states device: {states.device}")
+        print(f"After targets - actions device: {actions.device}")
+        print(f"After targets - rewards device: {rewards.device}")
+        print(f"After targets - next_states device: {next_states.device}")
+        print(f"After targets - terminals device: {terminals.device}")
 
         # Define the loss function for metaheuristic optimization
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
