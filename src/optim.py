@@ -79,11 +79,11 @@ class GAOptimizer:
         ).to(device)
 
         # Log the device of each tensor to ensure they are on the correct device
-        print(f"Before numpy conversion - states device: {states.device}")
-        print(f"Before numpy conversion - actions device: {actions.device}")
-        print(f"Before numpy conversion - rewards device: {rewards.device}")
-        print(f"Before numpy conversion - next_states device: {next_states.device}")
-        print(f"Before numpy conversion - terminals device: {terminals.device}")
+        # print(f"Before numpy conversion - states device: {states.device}")
+        # print(f"Before numpy conversion - actions device: {actions.device}")
+        # print(f"Before numpy conversion - rewards device: {rewards.device}")
+        # print(f"Before numpy conversion - next_states device: {next_states.device}")
+        # print(f"Before numpy conversion - terminals device: {terminals.device}")
 
         # Convert to numpy after moving to CPU
         states_cpu = states.cpu().numpy()
@@ -119,36 +119,29 @@ class GAOptimizer:
             else torch.tensor(terminals, dtype=torch.float32).to(device)
         )
 
-        # Convert to PyTorch tensors (using NumPy arrays before creating tensors to avoid warnings)
-        # states = torch.from_numpy(np.array(states)).float().to(device)
-        # actions = torch.from_numpy(np.array(actions)).long().to(device)
-        # rewards = torch.from_numpy(np.array(rewards)).float().to(device)
-        # next_states = torch.from_numpy(np.array(next_states)).float().to(device)
-        # terminals = torch.from_numpy(np.array(terminals)).float().to(device)
-
-        print(f"States device before gather in optim.py: {states.device}")
-        print(f"Actions device before gather in optim.py: {actions.device}")
+        # print(f"States device before gather in optim.py: {states.device}")
+        # print(f"Actions device before gather in optim.py: {actions.device}")
 
         # insert transition back to cuda here
         # ensure actions and states are both on the same device before computing q_values
         states = states.to(device)
         actions = actions.to(device)
 
-        print(f"optim: States device before policy_net: {states.device}")
-        print(f"optim: Actions device before policy_net: {actions.device}")
+        # print(f"optim: States device before policy_net: {states.device}")
+        # print(f"optim: Actions device before policy_net: {actions.device}")
 
         model_output = self.model(states.to(device))
         model_output = model_output.to(device)  # Ensure model output is on the same device
-        print(f"optim: Model output device: {model_output.device}")
+        # print(f"optim: Model output device: {model_output.device}")
 
-        print(f"optim: Before gather - q_values device: {model_output.device}")
-        print(f"optim: Before gather - actions device: {actions.device}")
+        # print(f"optim: Before gather - q_values device: {model_output.device}")
+        # print(f"optim: Before gather - actions device: {actions.device}")
 
         if model_output.device != actions.device:
             model_output = model_output.to(actions.device)
 
-        print(f"optim: After changing model_output - q_values device: {model_output.device}")
-        print(f"optim: After changing model_output - actions device: {actions.device}")
+        # print(f"optim: After changing model_output - q_values device: {model_output.device}")
+        # print(f"optim: After changing model_output - actions device: {actions.device}")
 
         q_values = model_output.gather(
             1,
@@ -156,7 +149,7 @@ class GAOptimizer:
         ).squeeze()  # Q-values for selected actions
         next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
         targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
-            device
+            device,
         )  # Bellman equation
 
         loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
