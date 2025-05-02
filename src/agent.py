@@ -132,16 +132,9 @@ class DQNAgent:
         terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
 
         # ensure actions and states are both on the same device before computing q_values
-        print(f"States device before: {states.device}")
         states = states.to(device)
-        print(f"States device after: {states.device}")
 
-        print(f"Actions device before: {actions.device}")
         actions = actions.to(device)
-        print(f"Actions device after: {actions.device}")
-
-        print(f"States device before gather in agent.py: {states.device}")
-        print(f"Actions device before gather in agent.py: {actions.device}")
 
         print(f"States device before policy_net: {states.device}")
         print(f"Actions device before policy_net: {actions.device}")
@@ -176,22 +169,10 @@ class DQNAgent:
         with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0]
 
-        print(f"Before targets - states device: {states.device}")
-        print(f"Before targets - actions device: {actions.device}")
-        print(f"Before targets - rewards device: {rewards.device}")
-        print(f"Before targets - next_states device: {next_states.device}")
-        print(f"Before targets - terminals device: {terminals.device}")
-
         # Compute targets
         targets = rewards.to(device) + (1 - terminals.to(device)) * self.gamma * next_q_values.to(
             device,
         )
-
-        print(f"After targets - states device: {states.device}")
-        print(f"After targets - actions device: {actions.device}")
-        print(f"After targets - rewards device: {rewards.device}")
-        print(f"After targets - next_states device: {next_states.device}")
-        print(f"After targets - terminals device: {terminals.device}")
 
         # Define the loss function for metaheuristic optimization
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
