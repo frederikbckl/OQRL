@@ -50,18 +50,41 @@ class GAOptimizer:
             # next_states = np.array([exp.next_obs for exp in batch])
             # terminals = np.array([exp.terminated for exp in batch])
 
-            # NEW: bring tensor to CPU before calling .numpy()
-            states = np.array(
-                [exp.obs.cpu().numpy() for exp in batch],
-            )  # Move to CPU before converting to numpy
-            actions = np.array(
-                [exp.action.cpu().numpy() for exp in batch],
+            # NEW v1: bring tensor to CPU before calling .numpy()
+            # states = np.array(
+            #     [exp.obs.cpu().numpy() for exp in batch],
+            # )  # Move to CPU before converting to numpy
+            # actions = np.array(
+            #     [exp.action.cpu().numpy() for exp in batch],
+            # )
+            # rewards = np.array(
+            #     [exp.reward.cpu().numpy() for exp in batch],
+            # )
+            # next_states = np.array([exp.next_obs.cpu().numpy() for exp in batch])
+            # terminals = np.array([exp.terminated.cpu().numpy() for exp in batch])
+
+            # NEW v2: convert to numpy and then to tensor
+            states = (
+                torch.from_numpy(np.array([exp.obs for exp in batch])).float().cpu().to(device)
             )
-            rewards = np.array(
-                [exp.reward.cpu().numpy() for exp in batch],
+            actions = (
+                torch.from_numpy(np.array([exp.action for exp in batch])).long().cpu().to(device)
             )
-            next_states = np.array([exp.next_obs.cpu().numpy() for exp in batch])
-            terminals = np.array([exp.terminated.cpu().numpy() for exp in batch])
+            rewards = (
+                torch.from_numpy(np.array([exp.reward for exp in batch])).float().cpu().to(device)
+            )
+            next_states = (
+                torch.from_numpy(np.array([exp.next_obs for exp in batch]))
+                .float()
+                .cpu()
+                .to(device)
+            )
+            terminals = (
+                torch.from_numpy(np.array([exp.terminated for exp in batch]))
+                .float()
+                .cpu()
+                .to(device)
+            )
 
         else:
             states, actions, rewards, next_states, terminals = zip(*batch)
