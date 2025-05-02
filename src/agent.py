@@ -31,9 +31,9 @@ class VQC(nn.Module):
         # "cuda" if torch.cuda.is_available() else "cpu",
         # )  # ✔️ Move device assignment
 
-        self.device = device
-        # self.dev = qml.device("default.qubit", wires=input_dim)
-        self.qnode = qml.QNode(self._circuit, self.device, interface="torch")
+        # self.device = device
+        self.dev = qml.device("default.qubit", wires=input_dim)
+        self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
     def _circuit(self, inputs, weights):
         """Define the quantum circuit."""
