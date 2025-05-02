@@ -151,10 +151,13 @@ class GAOptimizer:
         print(f"optim: After changing model_output - actions device: {actions.device}")
 
         q_values = model_output.gather(
-            1, actions.view(-1, 1)
+            1,
+            actions.view(-1, 1),
         ).squeeze()  # Q-values for selected actions
         next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
-        targets = rewards + (1 - terminals) * 0.99 * next_q_values  # Bellman equation
+        targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
+            device
+        )  # Bellman equation
 
         loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
         # print(f"Fitness computed: {-loss.item()}")  # Debugging
