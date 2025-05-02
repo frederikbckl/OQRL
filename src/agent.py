@@ -133,7 +133,7 @@ class DQNAgent:
         actions = actions.to(self.device)
 
         # Compute Q-values for current states and actions (after states and actions are on same device)
-        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1))
+        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1).to(self.device))
 
         # Compute Q-values for current states and actions
         # q_values = (
