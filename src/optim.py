@@ -129,8 +129,29 @@ class GAOptimizer:
         print(f"States device before gather in optim.py: {states.device}")
         print(f"Actions device before gather in optim.py: {actions.device}")
 
+        # insert transition back to cuda here
+        # ensure actions and states are both on the same device before computing q_values
+        states = states.to(device)
+        actions = actions.to(device)
+
+        print(f"optim: States device before policy_net: {states.device}")
+        print(f"optim: Actions device before policy_net: {actions.device}")
+
+        model_output = self.model(states.to(device))
+        model_output = model_output.to(device)  # Ensure model output is on the same device
+        print(f"optim: Model output device: {model_output.device}")
+
+        print(f"optim: Before gather - q_values device: {model_output.device}")
+        print(f"optim: Before gather - actions device: {actions.device}")
+
+        if model_output.device != actions.device:
+            model_output = model_output.to(actions.device)
+
+        print(f"optim: After changing model_output - q_values device: {model_output.device}")
+        print(f"optim: After changing model_output - actions device: {actions.device}")
+
         q_values = (
-            self.model(states).gather(1, actions.view(-1, 1)).squeeze()
+            model_output(states).gather(1, actions.view(-1, 1)).squeeze()
         )  # Q-values for selected actions
         next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
         targets = rewards + (1 - terminals) * 0.99 * next_q_values  # Bellman equation
