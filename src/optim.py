@@ -3,9 +3,10 @@ import random
 import numpy as np
 import torch
 
+from config import device
 from utils import Experience
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class GAOptimizer:

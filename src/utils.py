@@ -1,7 +1,9 @@
 import random
 from collections import deque
 
-import torch
+from config import device
+
+# import torch
 
 
 class Experience:
@@ -9,17 +11,17 @@ class Experience:
 
     # NEW: add device
     # Set device (either cuda if available, else cpu)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # NEW: try to get rid of warnings
     def __init__(self, obs, action, reward, next_obs, terminated):
         self.obs = (
-            obs.detach().clone().to(self.device)
+            obs.detach().clone().to(device)
         )  # ✔️ Ensure obs is moved to the correct device and detached from the computation graph
-        self.action = action.detach().clone().to(self.device)
-        self.reward = reward.detach().clone().to(self.device)
-        self.next_obs = next_obs.detach().clone().to(self.device)
-        self.terminated = terminated.detach().clone().to(self.device)
+        self.action = action.detach().clone().to(device)
+        self.reward = reward.detach().clone().to(device)
+        self.next_obs = next_obs.detach().clone().to(device)
+        self.terminated = terminated.detach().clone().to(device)
 
     # def __init__(self, obs, action, reward, next_obs, terminated):
     #     self.obs = torch.tensor(obs, dtype=torch.float32)
