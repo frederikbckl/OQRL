@@ -4,6 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
+from config import device
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience
@@ -17,7 +18,7 @@ def run_train(env_name, num_epochs, seed):
     env = gym.make(env_name)
 
     # Set device (either cuda if available, else cpu)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize the agent
     agent = DQNAgent(

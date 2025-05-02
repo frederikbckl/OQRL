@@ -5,6 +5,7 @@ import pennylane as qml
 import torch
 from torch import nn
 
+from config import device
 from optim import GAOptimizer
 
 # from optim import SimulatedAnnealing
@@ -26,10 +27,11 @@ class VQC(nn.Module):
         #     torch.rand(n_layers * input_dim * 3, requires_grad=True),
         # )  # forAdam
         self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu",
-        )  # ✔️ Move device assignment
+        # self.device = torch.device(
+        # "cuda" if torch.cuda.is_available() else "cpu",
+        # )  # ✔️ Move device assignment
 
+        self.device = device
         self.dev = qml.device("default.qubit", wires=input_dim)
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
@@ -81,7 +83,8 @@ class DQNAgent:
         self.gamma = gamma
         self.batch_size = batch_size
         self.replay_capacity = replay_capacity
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
         self.update_counter = 0  # track how many times update() was called
         self.update_frequency = 64  # optimize every X updates
 
