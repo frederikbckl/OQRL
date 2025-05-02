@@ -36,6 +36,10 @@ class GAOptimizer:
     # NEW TRY _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
         """Evaluate the fitness of an individual."""
+        # Load the individual's weights into the model
+        for param, ind_param in zip(self.model.parameters(), individual):
+            param.data.copy_(ind_param)
+
         # Unpack Experience objects directly
         states = torch.stack(
             [
