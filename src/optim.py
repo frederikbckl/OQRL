@@ -36,15 +36,12 @@ class GAOptimizer:
     # NEW TRY _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
         """Evaluate the fitness of an individual."""
-        # Extract the batch elements
-        states, actions, rewards, next_states, terminals = zip(*batch)
-
-        # Convert to tensors and move to the correct device (GPU or CPU)
-        states = torch.tensor(states, dtype=torch.float32).to(device)
-        actions = torch.tensor(actions, dtype=torch.int64).to(device)
-        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
-        next_states = torch.tensor(next_states, dtype=torch.float32).to(device)
-        terminals = torch.tensor(terminals, dtype=torch.float32).to(device)
+        # Unpack Experience objects directly
+        states = torch.tensor([exp.obs for exp in batch], dtype=torch.float32).to(device)
+        actions = torch.tensor([exp.action for exp in batch], dtype=torch.int64).to(device)
+        rewards = torch.tensor([exp.reward for exp in batch], dtype=torch.float32).to(device)
+        next_states = torch.tensor([exp.next_obs for exp in batch], dtype=torch.float32).to(device)
+        terminals = torch.tensor([exp.terminated for exp in batch], dtype=torch.float32).to(device)
 
         # Log the device of each tensor to ensure they are on the correct device
         print(f"Before numpy conversion - states device: {states.device}")
