@@ -120,11 +120,11 @@ class GAOptimizer:
         )
 
         # Convert to PyTorch tensors (using NumPy arrays before creating tensors to avoid warnings)
-        states = torch.from_numpy(np.array(states)).float().to(device)
-        actions = torch.from_numpy(np.array(actions)).long().to(device)
-        rewards = torch.from_numpy(np.array(rewards)).float().to(device)
-        next_states = torch.from_numpy(np.array(next_states)).float().to(device)
-        terminals = torch.from_numpy(np.array(terminals)).float().to(device)
+        # states = torch.from_numpy(np.array(states)).float().to(device)
+        # actions = torch.from_numpy(np.array(actions)).long().to(device)
+        # rewards = torch.from_numpy(np.array(rewards)).float().to(device)
+        # next_states = torch.from_numpy(np.array(next_states)).float().to(device)
+        # terminals = torch.from_numpy(np.array(terminals)).float().to(device)
 
         print(f"States device before gather in optim.py: {states.device}")
         print(f"Actions device before gather in optim.py: {actions.device}")
