@@ -153,6 +153,12 @@ class DQNAgent:
         print(f"Before gather - q_values device: {model_output.device}")
         print(f"Before gather - actions device: {actions.device}")
 
+        if model_output.device != actions.device:
+            model_output = model_output.to(actions.device)
+
+        print(f"After changing model_output - q_values device: {model_output.device}")
+        print(f"After changing model_output - actions device: {actions.device}")
+
         # Compute Q-values for current states and actions (after states and actions are on same device)
         q_values = model_output.gather(
             1,
