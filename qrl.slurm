@@ -38,5 +38,6 @@ NUM_EPOCHS=2
 python3 src/main.py --env_name $ENV_NAME --num_epochs $NUM_EPOCHS --seed $SEED
 
 # Summarize the logs once all jobs are done
+cd src
 python3 summarize_logs.py
 
