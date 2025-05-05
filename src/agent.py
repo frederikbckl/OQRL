@@ -5,6 +5,7 @@ import pennylane as qml
 import torch
 from torch import nn
 
+from config import device
 from optim import GAOptimizer
 
 # from optim import SimulatedAnnealing
@@ -26,10 +27,11 @@ class VQC(nn.Module):
         #     torch.rand(n_layers * input_dim * 3, requires_grad=True),
         # )  # forAdam
         self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu",
-        )  # ✔️ Move device assignment
+        # self.device = torch.device(
+        # "cuda" if torch.cuda.is_available() else "cpu",
+        # )  # ✔️ Move device assignment
 
+        # self.device = device
         self.dev = qml.device("default.qubit", wires=input_dim)
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
@@ -81,7 +83,8 @@ class DQNAgent:
         self.gamma = gamma
         self.batch_size = batch_size
         self.replay_capacity = replay_capacity
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
         self.update_counter = 0  # track how many times update() was called
         self.update_frequency = 64  # optimize every X updates
 
@@ -108,7 +111,7 @@ class DQNAgent:
             return np.random.randint(self.act_dim)
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         with torch.no_grad():
-            q_values = self.policy_net(state_tensor)
+            q_values = self.policy_net(state_tensor.to(self.device))
         return q_values.argmax().item()
 
     def update(self):
@@ -129,11 +132,33 @@ class DQNAgent:
         terminals = torch.stack([exp.terminated for exp in batch]).to(self.device)
 
         # ensure actions and states are both on the same device before computing q_values
-        states = states.to(self.device)
-        actions = actions.to(self.device)
+        states = states.to(device)
+
+        actions = actions.to(device)
+
+        # print(f"States device before policy_net: {states.device}")
+        # print(f"Actions device before policy_net: {actions.device}")
+
+        model_output = self.policy_net(states.to(self.device))
+        model_output = model_output.to(self.device)  # Ensure model output is on the same device
+        # print(f"Model output device: {model_output.device}")
+
+        # print(f"Before gather - q_values device: {model_output.device}")
+        # print(f"Before gather - actions device: {actions.device}")
+
+        if model_output.device != actions.device:
+            model_output = model_output.to(actions.device)
+
+        # print(f"After changing model_output - q_values device: {model_output.device}")
+        # print(f"After changing model_output - actions device: {actions.device}")
 
         # Compute Q-values for current states and actions (after states and actions are on same device)
-        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1).to(self.device))
+        q_values = model_output.gather(
+            1,
+            actions.unsqueeze(1).to(device),
+        )
+
+        # print(f"q_values device - after gather: {q_values.device}")
 
         # Compute Q-values for current states and actions
         # q_values = (
@@ -145,7 +170,9 @@ class DQNAgent:
             next_q_values = self.target_net(next_states).max(1)[0]
 
         # Compute targets
-        targets = rewards + (1 - terminals) * self.gamma * next_q_values
+        targets = rewards.to(device) + (1 - terminals.to(device)) * self.gamma * next_q_values.to(
+            device,
+        )
 
         # Define the loss function for metaheuristic optimization
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()

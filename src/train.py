@@ -4,6 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
+from config import device
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience
@@ -17,7 +18,7 @@ def run_train(env_name, num_epochs, seed):
     env = gym.make(env_name)
 
     # Set device (either cuda if available, else cpu)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize the agent
     agent = DQNAgent(
@@ -83,46 +84,53 @@ def run_train(env_name, num_epochs, seed):
             # NEW
             # Convert each element in the batch to a tensor
             states = [
-                torch.tensor(state, dtype=torch.float32)
+                torch.tensor(state, dtype=torch.float32).to(device)
                 if not isinstance(state, torch.Tensor)
-                else state
+                else state.to(device)
                 for state in states
             ]
 
             actions = [
-                torch.tensor(action, dtype=torch.int64)
+                torch.tensor(action, dtype=torch.int64).to(device)
                 if not isinstance(action, torch.Tensor)
-                else action
+                else action.to(device)
                 for action in actions
             ]
 
             rewards = [
-                torch.tensor(reward, dtype=torch.float32)
+                torch.tensor(reward, dtype=torch.float32).to(device)
                 if not isinstance(reward, torch.Tensor)
-                else reward
+                else reward.to(device)
                 for reward in rewards
             ]
 
             next_states = [
-                torch.tensor(next_state, dtype=torch.float32)
+                torch.tensor(next_state, dtype=torch.float32).to(device)
                 if not isinstance(next_state, torch.Tensor)
-                else next_state
+                else next_state.to(device)
                 for next_state in next_states
             ]
 
             terminals = [
-                torch.tensor(terminal, dtype=torch.float32)
+                torch.tensor(terminal, dtype=torch.float32).to(device)
                 if not isinstance(terminal, torch.Tensor)
-                else terminal
+                else terminal.to(device)
                 for terminal in terminals
             ]
 
             # Move each tensor in the batch to the appropriate device
+            # print(f"States device before: {states.device}")
             states = torch.stack(states).to(device)
+            # print(f"States device after moving to device: {states.device}")
+            # print(f"Actions device before: {actions.device}")
             actions = torch.stack(actions).to(device)
+            # print(f"Actions device after moving to device: {actions.device}")
             rewards = torch.stack(rewards).to(device)
+            # print(f"Rewards device after moving to device: {rewards.device}")
             next_states = torch.stack(next_states).to(device)
+            # print(f"Next states device after moving to device: {next_states.device}")
             terminals = torch.stack(terminals).to(device)
+            # print(f"Terminals device after moving to device: {terminals.device}")
 
             # Store in replay memory and move tensors to the appropriate device
             for j in range(len(states)):
