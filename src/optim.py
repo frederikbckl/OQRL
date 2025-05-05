@@ -37,6 +37,8 @@ class GAOptimizer:
     def _evaluate_fitness(self, individual, loss_fn, batch):
         """Evaluate the fitness of an individual."""
         # Load the individual's weights into the model (without these 2 lines, the agent is not learning)
+        # without it, the model would retain the weights of the previous generation (must be updated before each fitness evaluation)
+        # ensures that each fitness evaluation uses the correct weights for the model
         for param, ind_param in zip(self.model.parameters(), individual):
             param.data.copy_(ind_param)
 
