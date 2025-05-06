@@ -6,7 +6,7 @@ import torch
 from agent import DQNAgent
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
-from utils import Experience, device
+from utils import Experience, device, initialize_rng
 
 """Training module for simplified Offline QRL."""
 
@@ -18,6 +18,8 @@ def run_train(env_name, num_epochs, seed):
 
     # Set device (either cuda if available, else cpu)
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    rng = initialize_rng(seed)
 
     # Initialize the agent
     agent = DQNAgent(

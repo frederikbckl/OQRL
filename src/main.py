@@ -4,12 +4,15 @@
 
 from train import run_train
 
+# from utils import initialize_rng
+
 
 def main():
     """Main function to initialize and start training."""
     env_name = "CartPole-v1"
     num_epochs = 5
     seed = 0
+    # rng = initialize_rng(seed)
 
     # Start training
     run_train(env_name, num_epochs, seed)
