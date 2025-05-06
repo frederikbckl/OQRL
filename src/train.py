@@ -6,8 +6,6 @@ import torch
 from agent import DQNAgent
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
-
-# from config import device
 from utils import Experience, device
 
 """Training module for simplified Offline QRL."""

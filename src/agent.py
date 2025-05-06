@@ -5,7 +5,6 @@ import pennylane as qml
 import torch
 from torch import nn
 
-# from config import device
 from optim import GAOptimizer
 
 # from optim import SimulatedAnnealing
