@@ -5,11 +5,11 @@ import pennylane as qml
 import torch
 from torch import nn
 
-from config import device
+# from config import device
 from optim import GAOptimizer
 
 # from optim import SimulatedAnnealing
-from utils import ReplayMemory
+from utils import ReplayMemory, device
 
 # from utils import Experience
 

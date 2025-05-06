@@ -4,10 +4,11 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
-from config import device
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
-from utils import Experience
+
+# from config import device
+from utils import Experience, device
 
 """Training module for simplified Offline QRL."""
 

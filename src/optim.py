@@ -3,7 +3,9 @@ import random
 import numpy as np
 import torch
 
-from config import device
+from utils import device
+
+# from config import device
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
