@@ -193,7 +193,8 @@ def run_train(env_name, num_epochs, seed):
         eval_rewards = []
         num_episodes = 25  # Number of episodes for evaluation
         for episode in range(num_episodes):
-            state = env.reset()[0]
+            state = env.reset(seed=seed + episode)[0]  # new: seeded env.reset
+            # state = env.reset()[0] #old: random env.reset
             done = False
             episode_reward = 0
             while not done:
