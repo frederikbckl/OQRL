@@ -198,7 +198,7 @@ def run_train(env_name, num_epochs, seed):
             done = False
             episode_reward = 0
             while not done:
-                action = agent.act(state)  # Use the policy to select an action
+                action = agent.act(state, epsilon=0.0)  # Use the policy to select an action
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
                 episode_reward += float(reward)
