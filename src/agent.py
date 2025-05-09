@@ -109,7 +109,7 @@ class DQNAgent:
         for param in self.target_net.parameters():
             param.requires_grad = False
 
-        self.optimizer = GAOptimizer(model=self.policy_net)
+        self.optimizer = GAOptimizer(model=self.policy_net, rng=rng)
         self.loss_fn = nn.MSELoss()
 
         # Replay memory

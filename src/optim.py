@@ -23,12 +23,11 @@ class GAOptimizer:
         self.num_generations = num_generations
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
+        self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
 
         # Initialize population
         self.population = [self._initialize_individual() for _ in range(population_size)]
         self.best_individual = None
-
-        self.rng = rng or np.random.default_rng()  # Use seeded RNG
 
     def _initialize_individual(self):
         """Initialize an individual with random weights."""
