@@ -30,14 +30,15 @@ def run_train(env_name, num_epochs, seed):
         replay_capacity=10000,
         batch_size=64,
         vqc_layers=2,
+        rng=rng,
     )
 
     # Replace the optimizer with GAOptimizer
-    agent.optimizer = GAOptimizer(agent.policy_net)
+    agent.optimizer = GAOptimizer(agent.policy_net, rng=rng)
 
     # Load dataset
     dataset_path = "offline_cartpole_v2.hdf5"
-    dataset = OfflineDataset(dataset_path)
+    dataset = OfflineDataset(dataset_path, rng=rng)
     total_samples = dataset.size
     reward_history = []
     subset_fraction = 0.05  # Fraction of the dataset to use for training

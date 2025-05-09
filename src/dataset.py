@@ -5,9 +5,11 @@ import numpy as np
 class OfflineDataset:
     """Offline Dataset for loading pre-collected transitions."""
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, rng=None):
         """Initialize the dataset by loading the HDF5 file."""
         self.file = h5py.File(file_path, "r")
+        self.rng = rng or np.random.default_rng()
+
         print(
             "\nShape of observations before squeezing:",
             np.array(self.file["observations"]).shape,
@@ -48,8 +50,9 @@ class OfflineDataset:
             )
 
     def get_batch(self, batch_size):
-        """Get a random batch of data."""
-        indices = np.random.randint(0, self.size, size=batch_size)
+        """Get a seeded batch of data."""
+        indices = self.rng.integers(0, self.size, size=batch_size)
+        # indices = np.random.randint(0, self.size, size=batch_size)
         return (
             self.observations[indices],
             self.actions[indices],
@@ -70,8 +73,9 @@ class OfflineDataset:
             )
 
     def sample(self, size):
-        """Randomly sample a subset of the dataset."""
-        indices = np.random.choice(self.size, size, replace=False)
+        """Sample a seeded subset of the dataset."""
+        indices = self.rng.choice(self.size, size=size, replace=False)
+        # indices = np.random.choice(self.size, size, replace=False)
 
         observations = self.observations[indices]
         actions = self.actions[indices]

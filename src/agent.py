@@ -16,16 +16,25 @@ from utils import ReplayMemory, device
 class VQC(nn.Module):
     """Variational Quantum Circuit implemented using PennyLane."""
 
-    def __init__(self, input_dim, output_dim, n_layers=2):
+    def __init__(self, input_dim, output_dim, n_layers=2, rng=None):
         """Reduced n_layers to 2 for faster training."""
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
+        self.rng = rng or np.random.default_rng()  # fallback if no rng provided
+
         # self.params = nn.Parameter(
         #     torch.rand(n_layers * input_dim * 3, requires_grad=True),
         # )  # forAdam
-        self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
+
+        # NEW: use seeded RNG for reproducible parameters
+        init_values = self.rng.random(n_layers * input_dim * 3).astype(np.float32)
+        self.params = nn.Parameter(torch.tensor(init_values), requires_grad=False)
+
+        # old params initialization (random)
+        # self.params = nn.Parameter(torch.rand(n_layers * input_dim * 3), requires_grad=False)
+
         # self.device = torch.device(
         # "cuda" if torch.cuda.is_available() else "cpu",
         # )  # ✔️ Move device assignment
@@ -76,6 +85,7 @@ class DQNAgent:
         replay_capacity,
         batch_size,
         vqc_layers=2,
+        rng=None,
     ):
         self.obs_dim = obs_dim
         self.act_dim = act_dim
@@ -84,12 +94,13 @@ class DQNAgent:
         self.replay_capacity = replay_capacity
         # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.device = device
+        self.rng = rng or np.random.default_rng()
         self.update_counter = 0  # track how many times update() was called
         self.update_frequency = 64  # optimize every X updates
 
         # Initialize VQC policy network
-        self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers).to(self.device)
-        self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers).to(self.device)
+        self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers, rng=rng).to(self.device)
+        self.target_net = VQC(obs_dim, act_dim, n_layers=vqc_layers, rng=rng).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         # Disable gradients for policy_net and target_net
@@ -102,12 +113,16 @@ class DQNAgent:
         self.loss_fn = nn.MSELoss()
 
         # Replay memory
-        self.memory = ReplayMemory(replay_capacity)
+        self.memory = ReplayMemory(capacity=replay_capacity, rng=rng)
 
     def act(self, state, epsilon=0.1):
         """Select an action using epsilon-greedy policy."""
-        if np.random.rand() < epsilon:
-            return np.random.randint(self.act_dim)
+        if self.rng.random() < epsilon:
+            return self.rng.integers(
+                self.act_dim,
+            )  # Note: `integers()` is used instead of `randint()`
+        # if np.random.rand() < epsilon:
+        #     return np.random.randint(self.act_dim)
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         with torch.no_grad():
             q_values = self.policy_net(state_tensor.to(self.device))

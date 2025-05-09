@@ -46,14 +46,22 @@ class Experience:
 class ReplayMemory:
     """Replay memory for storing transitions."""
 
-    def __init__(self, capacity):
+    def __init__(self, capacity, rng):
         self.memory = deque(maxlen=capacity)
+        self.rng = rng
 
     def push(self, experience: Experience):
         self.memory.append(experience)
 
     def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
+        # new sample function (seeded)
+        indices = self.rng.choice(len(self.memory), batch_size, replace=False)
+        return [self.memory[i] for i in indices]
+        # old sample function (random)
+        # return random.sample(self.memory, batch_size)
+
+        # alternative new sample function (seeded, without indices needed)
+        # return self.rng.choice(self.memory, batch_size, replace=False)
 
     def __len__(self):
         return len(self.memory)

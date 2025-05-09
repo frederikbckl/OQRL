@@ -1,4 +1,4 @@
-import random
+# import random
 
 import numpy as np
 import torch
@@ -16,6 +16,7 @@ class GAOptimizer:
         num_generations=10,
         mutation_rate=0.1,
         crossover_rate=0.5,
+        rng=None,
     ):
         self.model = model
         self.population_size = population_size
@@ -27,11 +28,24 @@ class GAOptimizer:
         self.population = [self._initialize_individual() for _ in range(population_size)]
         self.best_individual = None
 
+        self.rng = rng or np.random.default_rng()  # Use seeded RNG
+
     def _initialize_individual(self):
         """Initialize an individual with random weights."""
-        return [
-            param.data.clone() + 0.1 * torch.randn_like(param) for param in self.model.parameters()
-        ]
+        # new seeded initialization
+        individual = []
+        for param in self.model.parameters():
+            shape = param.shape
+            # Use numpy RNG to sample normal distribution and convert to tensor
+            noise = self.rng.normal(loc=0.0, scale=1.0, size=shape)
+            noise_tensor = torch.tensor(noise, dtype=torch.float32, device=param.device)
+            individual.append(param.data.clone() + 0.1 * noise_tensor)
+        return individual
+
+        # old simple (random) initialization
+        # return [
+        #     param.data.clone() + 0.1 * torch.randn_like(param) for param in self.model.parameters()
+        # ]
 
     # NEW TRY _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
@@ -249,16 +263,26 @@ class GAOptimizer:
         """Perform crossover between two parents."""
         child1, child2 = [], []
         for p1, p2 in zip(parent1, parent2):
-            mask = torch.rand_like(p1) < self.crossover_rate
+            # new mask: seeded rng
+            shape = p1.shape
+            # Generate deterministic mask using seeded RNG
+            mask_np = self.rng.random(shape) < self.crossover_rate
+            mask = torch.tensor(mask_np, dtype=torch.bool, device=p1.device)
+
+            # old: with randomness
+            # mask = torch.rand_like(p1) < self.crossover_rate
+
             child1.append(torch.where(mask, p1, p2))
             child2.append(torch.where(mask, p2, p1))
         return child1, child2
 
     def _mutate(self, individual):
-        """Mutate an individual by adding random noise."""
+        """Mutate an individual by adding noise."""
         for param in individual:
-            if random.random() < self.mutation_rate:
+            if self.rng.random() < self.mutation_rate:
                 param += 0.1 * torch.randn_like(param)
+            # if random.random() < self.mutation_rate:
+            #     param += 0.1 * torch.randn_like(param)
 
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""
@@ -280,11 +304,13 @@ class GAOptimizer:
             # )[:2]  # Elitism: retain the top 2 individuals
 
             while len(next_population) < self.population_size:
-                # Select parents
-                parent1, parent2 = random.sample(self.population[:5], 2)  # random selection (old)
-                # parent1, parent2 = [
-                #     self.tournament_selection(loss_fn, batch, k=5) for _ in range(2)
-                # ]  # Tournament selection
+                # New seeded parent selection
+                parent_indices = self.rng.choice(5, size=2, replace=False)
+                parent1 = self.population[parent_indices[0]]
+                parent2 = self.population[parent_indices[1]]
+
+                # Old (random) parent selection
+                # parent1, parent2 = random.sample(self.population[:5], 2)  # old selection
 
                 # Crossover and mutation
                 child1, child2 = self._crossover(parent1, parent2)
@@ -306,10 +332,10 @@ class GAOptimizer:
         else:
             print("Warning: best_individual is None. Skipping weight update.")
 
-    def tournament_selection(self, loss_fn, batch, k=7):
-        """Select the best individual out of k randomly chosen ones."""
-        selected = random.sample(self.population, k)
-        return min(selected, key=lambda ind: self._evaluate_fitness(ind, loss_fn, batch))
+    # def tournament_selection(self, loss_fn, batch, k=7):
+    #     """Select the best individual out of k randomly chosen ones."""
+    #     selected = random.sample(self.population, k)
+    #     return min(selected, key=lambda ind: self._evaluate_fitness(ind, loss_fn, batch))
 
     # def elitism(self, elite_size=2):
     #     """Preserve the best individuals."""
