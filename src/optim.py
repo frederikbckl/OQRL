@@ -278,10 +278,12 @@ class GAOptimizer:
     def _mutate(self, individual):
         """Mutate an individual by adding noise."""
         for param in individual:
-            if self.rng.random() < self.mutation_rate:
-                param += 0.1 * torch.randn_like(param)
-            # if random.random() < self.mutation_rate:
-            #     param += 0.1 * torch.randn_like(param)
+            with torch.no_grad():
+                noise = torch.tensor(
+                    self.rng.normal(0, 0.1, size=param.shape),
+                    device=param.device,
+                )
+                param.add_(noise)
 
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""

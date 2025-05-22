@@ -17,6 +17,8 @@ def initialize_rng(seed_value: int) -> Generator:
     environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     torch.cuda.manual_seed_all(seed_value)
     torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     return np.random.default_rng(seed_value)
 
 

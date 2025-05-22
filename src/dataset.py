@@ -7,7 +7,10 @@ class OfflineDataset:
 
     def __init__(self, file_path, rng=None):
         """Initialize the dataset by loading the HDF5 file."""
-        self.file = h5py.File(file_path, "r")
+        try:
+            self.file = h5py.File(file_path, "r")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load dataset: {e}")
         self.rng = rng or np.random.default_rng()
 
         print(

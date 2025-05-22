@@ -40,7 +40,7 @@ class VQC(nn.Module):
         # )  # ✔️ Move device assignment
 
         # self.device = device
-        self.dev = qml.device("default.qubit", wires=input_dim)
+        self.dev = qml.device("default.qubit", wires=input_dim, shots=None)  # deterministic mode
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
     def _circuit(self, inputs, weights):

@@ -14,7 +14,9 @@ from utils import Experience, device, initialize_rng
 def run_train(env_name, num_epochs, seed):
     """Run training for the given environment."""
     # Initialize environment
-    env = gym.make(env_name)
+    env = gym.make(env_name, render_mode=None)  # Disable rendering for consistency
+    env.reset(seed=seed)  # Seed the environment at creation
+    env.action_space.seed(seed)  # Seed the action space
 
     # Set device (either cuda if available, else cpu)
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
