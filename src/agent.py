@@ -96,7 +96,7 @@ class DQNAgent:
         self.device = device
         self.rng = rng or np.random.default_rng()
         self.update_counter = 0  # track how many times update() was called
-        self.update_frequency = 32  # optimize every X updates
+        self.update_frequency = 64  # optimize every X updates
 
         # Initialize VQC policy network
         self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers, rng=rng).to(self.device)
