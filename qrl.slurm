@@ -28,7 +28,7 @@ SEED=${SEEDS[$SLURM_ARRAY_TASK_ID]}
 
 # Parameters for your training
 ENV_NAME="CartPole-v1"
-NUM_EPOCHS=2
+NUM_EPOCHS=1
 
 # Load Python or your environment here if needed
 # module load python/3.9  # optional, if needed

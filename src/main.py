@@ -10,7 +10,7 @@ from train import run_train
 def main():
     """Main function to initialize and start training."""
     env_name = "CartPole-v1"
-    num_epochs = 5
+    num_epochs = 1
     seed = 0
     # rng = initialize_rng(seed)
 
