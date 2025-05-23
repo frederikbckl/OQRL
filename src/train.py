@@ -14,7 +14,9 @@ from utils import Experience, device, initialize_rng
 def run_train(env_name, num_epochs, seed):
     """Run training for the given environment."""
     # Initialize environment
-    env = gym.make(env_name)
+    env = gym.make(env_name, render_mode=None)  # Disable rendering for consistency
+    env.reset(seed=seed)  # Seed the environment at creation
+    env.action_space.seed(seed)  # Seed the action space
 
     # Set device (either cuda if available, else cpu)
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -30,14 +32,15 @@ def run_train(env_name, num_epochs, seed):
         replay_capacity=10000,
         batch_size=64,
         vqc_layers=2,
+        rng=rng,
     )
 
     # Replace the optimizer with GAOptimizer
-    agent.optimizer = GAOptimizer(agent.policy_net)
+    agent.optimizer = GAOptimizer(agent.policy_net, rng=rng)
 
     # Load dataset
     dataset_path = "offline_cartpole_v2.hdf5"
-    dataset = OfflineDataset(dataset_path)
+    dataset = OfflineDataset(dataset_path, rng=rng)
     total_samples = dataset.size
     reward_history = []
     subset_fraction = 0.05  # Fraction of the dataset to use for training
@@ -192,11 +195,12 @@ def run_train(env_name, num_epochs, seed):
         eval_rewards = []
         num_episodes = 25  # Number of episodes for evaluation
         for episode in range(num_episodes):
-            state = env.reset()[0]
+            state = env.reset(seed=seed + episode)[0]  # new: seeded env.reset
+            # state = env.reset()[0] #old: random env.reset
             done = False
             episode_reward = 0
             while not done:
-                action = agent.act(state)  # Use the policy to select an action
+                action = agent.act(state, epsilon=0.0)  # Use the policy to select an action
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
                 episode_reward += float(reward)

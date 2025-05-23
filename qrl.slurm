@@ -34,7 +34,10 @@ NUM_EPOCHS=2
 # module load python/3.9  # optional, if needed
 # source ~/your_virtualenv/bin/activate  # optional
 
-# Run your Python script
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
+export PYTHONHASHSEED=0
+
+# Run Python script
 python3 src/main.py --env_name $ENV_NAME --num_epochs $NUM_EPOCHS --seed $SEED
 
 # Summarize the logs once all jobs are done
