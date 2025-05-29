@@ -298,8 +298,11 @@ class GAOptimizer:
         # would this be enough to calculate the number of interactions?
         interactions_this_optimization = self.population_size * self.num_generations * len(batch)
         self.total_interactions += interactions_this_optimization
-        print("[GAOptimizer] Total interactions this optimizaion:", interactions_this_optimization)
-        print("[GAOptimizer] Total interactions:", self.total_interactions)
+        print(
+            "[GAOptimizer] Total (calculated) interactions this optimizaion:",
+            interactions_this_optimization,
+        )
+        print("[GAOptimizer] Total (calculated) interactions:", self.total_interactions)
 
         for generation in range(self.num_generations):
             # print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")

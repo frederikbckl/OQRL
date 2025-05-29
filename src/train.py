@@ -161,10 +161,10 @@ def run_train(env_name, num_epochs, seed):
             agent.update()
 
             # Log dataset interactions after update (only if using GAOptimizer)
-            if hasattr(agent.optimizer, "interaction_count"):
-                print(
-                    f"[Interaction Log] Total dataset interactions so far: {agent.optimizer.interaction_count}",
-                )
+            # if hasattr(agent.optimizer, "interaction_count"):
+            #     print(
+            #         f"[Interaction Log] Total dataset interactions so far: {agent.optimizer.interaction_count}",
+            #     )
 
             # Accumulate rewards (for the epoch)
             batch_reward = sum(rewards)
@@ -182,6 +182,11 @@ def run_train(env_name, num_epochs, seed):
                     f"Processed {processed_samples}/{subset_size} samples "
                     f"({(processed_samples / subset_size) * 100:.1f}%) of current subset",
                 )
+                # Log dataset interactions after update (only if using GAOptimizer, every 10% of subset)
+                if hasattr(agent.optimizer, "interaction_count"):
+                    print(
+                        f"[Interaction Log] Total counted dataset interactions so far: {agent.optimizer.interaction_count}",
+                    )
 
             batch_idx += 1
 
