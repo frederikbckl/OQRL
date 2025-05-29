@@ -3,7 +3,7 @@
 #SBATCH --output=logs/output_%A_%a.txt
 #SBATCH --error=logs/error_%A_%a.txt
 #SBATCH --ntasks=1
-#SBATCH --time=03:00:00
+#SBATCH --time=06:00:00
 #SBATCH --partition=All
 #SBATCH --array=0-14
 
