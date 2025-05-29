@@ -85,7 +85,6 @@ def run_train(env_name, num_epochs, seed):
             # Process batch
             states, actions, rewards, next_states, terminals = zip(*batch)
 
-            # NEW
             # Convert each element in the batch to a tensor
             states = [
                 torch.tensor(state, dtype=torch.float32).to(device)
@@ -148,13 +147,6 @@ def run_train(env_name, num_epochs, seed):
                     ),
                 )
 
-            # OLD
-            # store in replay memory
-            # for j in range(len(states)):
-            #     agent.memory.push(
-            #         Experience(states[j], actions[j], rewards[j], next_states[j], terminals[j]),
-            #     )
-
             # Update agent using GAOptimizer
             def loss_fn(q, target):
                 return torch.nn.functional.mse_loss(q, target)
@@ -167,6 +159,12 @@ def run_train(env_name, num_epochs, seed):
 
             # Update agent
             agent.update()
+
+            # Log dataset interactions after update (only if using GAOptimizer)
+            if hasattr(agent.optimizer, "interaction_count"):
+                print(
+                    f"[Interaction Log] Total dataset interactions so far: {agent.optimizer.interaction_count}",
+                )
 
             # Accumulate rewards (for the epoch)
             batch_reward = sum(rewards)
@@ -189,6 +187,7 @@ def run_train(env_name, num_epochs, seed):
 
         reward_history.append(epoch_reward)
         print(f"Epoch {epoch + 1} completed. Total Reward = {epoch_reward:.2f}")
+        print(f"Dataset interactions in Epoch {epoch+1}: {agent.optimizer.interaction_count}")
 
         # Testing the agent
         print(f"Starting evaluation for Epoch {epoch + 1}...")

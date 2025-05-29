@@ -37,7 +37,7 @@ class VQC(nn.Module):
 
         # self.device = torch.device(
         # "cuda" if torch.cuda.is_available() else "cpu",
-        # )  # ✔️ Move device assignment
+        # )
 
         # self.device = device
         self.dev = qml.device("default.qubit", wires=input_dim, shots=None)  # deterministic mode

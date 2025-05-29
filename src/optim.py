@@ -25,9 +25,13 @@ class GAOptimizer:
         self.crossover_rate = crossover_rate
         self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
 
+        self.total_interactions = 0  # interactions calculated for GA
+
         # Initialize population
         self.population = [self._initialize_individual() for _ in range(population_size)]
         self.best_individual = None
+
+        self.interaction_count = 0  # actually counted interactions
 
     def _initialize_individual(self):
         """Initialize an individual with random weights."""
@@ -173,6 +177,10 @@ class GAOptimizer:
 
         loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
         # print(f"Fitness computed: {-loss.item()}")  # Debugging
+
+        # count interactions with the offline dataset
+        self.interaction_count += 1  # or should it be incremented by len(batch)?
+
         return -loss.item()  # Negative loss as fitness (to maximize reward)
 
     # OLD _evaluate_fitness
@@ -287,6 +295,12 @@ class GAOptimizer:
 
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""
+        # would this be enough to calculate the number of interactions?
+        interactions_this_optimization = self.population_size * self.num_generations * len(batch)
+        self.total_interactions += interactions_this_optimization
+        print("[GAOptimizer] Total interactions this optimizaion:", interactions_this_optimization)
+        print("[GAOptimizer] Total interactions:", self.total_interactions)
+
         for generation in range(self.num_generations):
             # print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")
             # Evaluate fitness for each individual
@@ -325,6 +339,8 @@ class GAOptimizer:
 
         # delete this log later
         # print("Finished GA optimization for batch")
+
+        print(f"[GAOptimizer] Total offline samples used so far: {self.total_interactions}")
 
         # Load the best individual's weights into the model
         if self.best_individual is not None:
