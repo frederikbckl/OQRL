@@ -179,7 +179,7 @@ class GAOptimizer:
         # print(f"Fitness computed: {-loss.item()}")  # Debugging
 
         # count interactions with the offline dataset
-        self.interaction_count += 1  # or should it be incremented by len(batch)?
+        self.interaction_count += len(batch)  # or should it be incremented by len(batch)?
 
         return -loss.item()  # Negative loss as fitness (to maximize reward)
 
