@@ -12,8 +12,8 @@ class GAOptimizer:
     def __init__(
         self,
         model,
-        population_size=50,
-        num_generations=20,
+        population_size=25,
+        num_generations=10,
         mutation_rate=0.1,
         crossover_rate=0.5,
         rng=None,
@@ -298,11 +298,11 @@ class GAOptimizer:
         # would this be enough to calculate the number of interactions?
         interactions_this_optimization = self.population_size * self.num_generations * len(batch)
         self.total_interactions += interactions_this_optimization
-        print(
-            "[GAOptimizer] Total (calculated) interactions this optimizaion:",
-            interactions_this_optimization,
-        )
-        print("[GAOptimizer] Total (calculated) interactions:", self.total_interactions)
+        # print(
+        #     "[GAOptimizer] Total (calculated) interactions this optimizaion:",
+        #     interactions_this_optimization,
+        # )
+        # print("[GAOptimizer] Total (calculated) interactions:", self.total_interactions)
 
         for generation in range(self.num_generations):
             # print(f"GAOptimizer: Generation {generation+1}/{self.num_generations}")
