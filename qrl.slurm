@@ -24,7 +24,7 @@ mkdir -p $TMPDIR
 
 # Create a seed list (manually or load from file)
 # SEEDS=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
-# SEEDS=(1 2 3)
+SEEDS=(1 2 3)
 
 
 # Pick the correct seed based on the SLURM_ARRAY_TASK_ID
