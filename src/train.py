@@ -35,7 +35,7 @@ def run_train(env_name, num_epochs, seed):
         rng=rng,
     )
 
-    # Replace the optimizer with GAOptimizer
+    # Replace the optimizer with respective Metaheuristic Optimizer
     agent.optimizer = GAOptimizer(agent.policy_net, rng=rng)
 
     # Load dataset
@@ -159,12 +159,6 @@ def run_train(env_name, num_epochs, seed):
 
             # Update agent
             agent.update()
-
-            # Log dataset interactions after update (only if using GAOptimizer)
-            # if hasattr(agent.optimizer, "interaction_count"):
-            #     print(
-            #         f"[Interaction Log] Total dataset interactions so far: {agent.optimizer.interaction_count}",
-            #     )
 
             # Accumulate rewards (for the epoch)
             batch_reward = sum(rewards)

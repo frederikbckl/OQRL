@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --time=06:00:00
 #SBATCH --partition=All
-#SBATCH --array=0-14
+#SBATCH --array=0-2 # Adjust the array range based on the number of seeds you have
 
 # Move into the right project folder
 cd ~/Desktop/Programming/BachelorThesis/OQRL
@@ -21,7 +21,9 @@ export TMPDIR=/home/b/bickel/tmp
 mkdir -p $TMPDIR
 
 # Create a seed list (manually or load from file)
-SEEDS=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+# SEEDS=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+# SEEDS=(1 2 3)
+
 
 # Pick the correct seed based on the SLURM_ARRAY_TASK_ID
 SEED=${SEEDS[$SLURM_ARRAY_TASK_ID]}
