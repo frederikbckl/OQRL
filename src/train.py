@@ -148,8 +148,8 @@ def run_train(env_name, num_epochs, seed):
                 )
 
             # Update agent using GAOptimizer
-            def loss_fn(q, target):
-                return torch.nn.functional.mse_loss(q, target)
+            # def loss_fn(q, target):
+            #     return torch.nn.functional.mse_loss(q, target)
 
             # (f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",)
 

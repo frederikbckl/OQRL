@@ -5,7 +5,9 @@
 #SBATCH --ntasks=1
 #SBATCH --time=06:00:00
 #SBATCH --partition=All
-#SBATCH --array=0-2 # Adjust the array range based on the number of seeds you have
+#SBATCH --array=0-2 
+
+# Adjust the array range based on the number of seeds you have
 
 # Move into the right project folder
 cd ~/Desktop/Programming/BachelorThesis/OQRL
