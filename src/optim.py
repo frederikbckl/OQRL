@@ -37,6 +37,8 @@ class GAOptimizer(BaseOptimizer):
         self.crossover_rate = crossover_rate
         self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
 
+        # self.total_interactions = 0  # calculated interactions
+
         # Initialize population
         self.population = [self._initialize_individual() for _ in range(population_size)]
         self.best_individual = None
@@ -301,8 +303,8 @@ class GAOptimizer(BaseOptimizer):
     def optimize(self, loss_fn, batch):
         """Run the genetic algorithm optimization."""
         # would this be enough to calculate the number of interactions?
-        interactions_this_optimization = self.population_size * self.num_generations * len(batch)
-        self.total_interactions += interactions_this_optimization
+        # interactions_this_optimization = self.population_size * self.num_generations * len(batch)
+        # self.total_interactions += interactions_this_optimization
         # print(
         #     "[GAOptimizer] Total (calculated) interactions this optimizaion:",
         #     interactions_this_optimization,
@@ -348,7 +350,7 @@ class GAOptimizer(BaseOptimizer):
         # delete this log later
         # print("Finished GA optimization for batch")
 
-        print(f"[GAOptimizer] Total offline samples used so far: {self.total_interactions}")
+        # print(f"[GAOptimizer] Total offline samples used so far: {self.total_interactions}")
 
         # Load the best individual's weights into the model
         if self.best_individual is not None:
