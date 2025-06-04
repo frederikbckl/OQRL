@@ -25,11 +25,7 @@ def initialize_rng(seed_value: int) -> Generator:
 class Experience:
     """Class to store a single transition."""
 
-    # NEW: add device
-    # Set device (either cuda if available, else cpu)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # NEW: try to get rid of warnings
+    # to get rid of warnings
     def __init__(self, obs, action, reward, next_obs, terminated):
         self.obs = obs.detach().clone().to(device)
         self.action = action.detach().clone().to(device)
@@ -56,14 +52,9 @@ class ReplayMemory:
         self.memory.append(experience)
 
     def sample(self, batch_size):
-        # new sample function (seeded)
+        # seeded sample function
         indices = self.rng.choice(len(self.memory), batch_size, replace=False)
         return [self.memory[i] for i in indices]
-        # old sample function (random)
-        # return random.sample(self.memory, batch_size)
-
-        # alternative new sample function (seeded, without indices needed)
-        # return self.rng.choice(self.memory, batch_size, replace=False)
 
     def __len__(self):
         return len(self.memory)

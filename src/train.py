@@ -18,9 +18,6 @@ def run_train(env_name, num_epochs, seed):
     env.reset(seed=seed)  # Seed the environment at creation
     env.action_space.seed(seed)  # Seed the action space
 
-    # Set device (either cuda if available, else cpu)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     rng = initialize_rng(seed)
 
     # Initialize the agent
@@ -122,18 +119,11 @@ def run_train(env_name, num_epochs, seed):
             ]
 
             # Move each tensor in the batch to the appropriate device
-            # print(f"States device before: {states.device}")
             states = torch.stack(states).to(device)
-            # print(f"States device after moving to device: {states.device}")
-            # print(f"Actions device before: {actions.device}")
             actions = torch.stack(actions).to(device)
-            # print(f"Actions device after moving to device: {actions.device}")
             rewards = torch.stack(rewards).to(device)
-            # print(f"Rewards device after moving to device: {rewards.device}")
             next_states = torch.stack(next_states).to(device)
-            # print(f"Next states device after moving to device: {next_states.device}")
             terminals = torch.stack(terminals).to(device)
-            # print(f"Terminals device after moving to device: {terminals.device}")
 
             # Store in replay memory and move tensors to the appropriate device
             for j in range(len(states)):
@@ -146,12 +136,6 @@ def run_train(env_name, num_epochs, seed):
                         terminals[j].to(device),
                     ),
                 )
-
-            # Update agent using GAOptimizer
-            # def loss_fn(q, target):
-            #     return torch.nn.functional.mse_loss(q, target)
-
-            # (f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",)
 
             # NEW: might be dead code but worth a try. Delete if not needed
             # Ensure that actions are moved to the correct device before calling agent.update
@@ -194,7 +178,6 @@ def run_train(env_name, num_epochs, seed):
         num_episodes = 25  # Number of episodes for evaluation
         for episode in range(num_episodes):
             state = env.reset(seed=seed + episode)[0]  # new: seeded env.reset
-            # state = env.reset()[0] #old: random env.reset
             done = False
             episode_reward = 0
             while not done:

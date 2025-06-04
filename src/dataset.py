@@ -17,7 +17,7 @@ class OfflineDataset:
             "\nShape of observations before squeezing:",
             np.array(self.file["observations"]).shape,
         )
-        # if statement for different dataset shapes
+        # if statement necessary for different dataset shapes
         if np.array(self.file["observations"]).shape == (100000, 4):
             self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
             self.actions = np.array(self.file["actions"])  # Adjust if needed
@@ -78,7 +78,6 @@ class OfflineDataset:
     def sample(self, size):
         """Sample a seeded subset of the dataset."""
         indices = self.rng.choice(self.size, size=size, replace=False)
-        # indices = np.random.choice(self.size, size, replace=False)
 
         observations = self.observations[indices]
         actions = self.actions[indices]
