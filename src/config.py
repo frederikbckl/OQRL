@@ -1,7 +1,7 @@
 """Experiment configuration."""
 
 # General
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 
 # Genetic Algorithm
 POPULATION_SIZE = 25
