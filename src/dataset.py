@@ -53,29 +53,6 @@ class OfflineDataset:
                 self.terminals[i],
             )
 
-    def get_batch(self, batch_size):
-        """Get a seeded batch of data."""
-        indices = self.rng.integers(0, self.size, size=batch_size)
-        # indices = np.random.randint(0, self.size, size=batch_size)
-        return (
-            self.observations[indices],
-            self.actions[indices],
-            self.rewards[indices],
-            self.next_observations[indices],
-            self.terminals[indices],
-        )
-
-    def get_batches(self, batch_size):
-        """Generator that yields batches of experiences sequentially."""
-        for i in range(0, self.size, batch_size):
-            yield (
-                self.observations[i : i + batch_size],
-                self.actions[i : i + batch_size],
-                self.rewards[i : i + batch_size],
-                self.next_observations[i : i + batch_size],
-                self.terminals[i : i + batch_size],
-            )
-
     def sample(self, size):
         """Sample a seeded subset of the dataset."""
         indices = self.rng.choice(self.size, size=size, replace=False)
