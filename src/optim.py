@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import torch
 
+from config import CROSSOVER_RATE, MUTATION_RATE, NUM_GENERATIONS, POPULATION_SIZE
 from utils import device
 
 
@@ -26,10 +27,10 @@ class GAOptimizer(BaseOptimizer):
     def __init__(
         self,
         model,
-        population_size=25,
-        num_generations=10,
-        mutation_rate=0.1,
-        crossover_rate=0.5,
+        population_size=POPULATION_SIZE,
+        num_generations=NUM_GENERATIONS,
+        mutation_rate=MUTATION_RATE,
+        crossover_rate=CROSSOVER_RATE,
         rng=None,
     ):
         super().__init__(model, rng)
