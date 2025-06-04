@@ -1,5 +1,7 @@
 # import random
 
+from abc import ABC, abstractmethod
+
 import numpy as np
 import torch
 
@@ -8,7 +10,17 @@ from utils import device
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class GAOptimizer:
+class BaseOptimizer(ABC):
+    def __init__(self, model, rng=None):
+        self.model = model
+        self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
+
+    @abstractmethod
+    def optimize(self, loss_fn, batch):
+        """Run full optimization loop."""
+
+
+class GAOptimizer(BaseOptimizer):
     def __init__(
         self,
         model,
@@ -18,14 +30,12 @@ class GAOptimizer:
         crossover_rate=0.5,
         rng=None,
     ):
-        self.model = model
+        super().__init__(model, rng)
         self.population_size = population_size
         self.num_generations = num_generations
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
-
-        self.total_interactions = 0  # interactions calculated for GA
 
         # Initialize population
         self.population = [self._initialize_individual() for _ in range(population_size)]
@@ -44,11 +54,6 @@ class GAOptimizer:
             noise_tensor = torch.tensor(noise, dtype=torch.float32, device=param.device)
             individual.append(param.data.clone() + 0.1 * noise_tensor)
         return individual
-
-        # old simple (random) initialization
-        # return [
-        #     param.data.clone() + 0.1 * torch.randn_like(param) for param in self.model.parameters()
-        # ]
 
     # NEW TRY _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
