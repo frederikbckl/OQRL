@@ -4,6 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
+from config import BATCH_SIZE
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience, device, initialize_rng
@@ -27,7 +28,7 @@ def run_train(env_name, num_epochs, seed):
         learning_rate=0.001,
         gamma=0.99,
         replay_capacity=10000,
-        batch_size=64,
+        batch_size=BATCH_SIZE,
         vqc_layers=2,
         rng=rng,
     )
@@ -42,7 +43,7 @@ def run_train(env_name, num_epochs, seed):
     reward_history = []
     subset_fraction = 0.05  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
-    # batch_size = 64
+    batch_size = BATCH_SIZE
 
     print(f"Total samples: {total_samples}")
     print(f"Subset size: {subset_size}")
