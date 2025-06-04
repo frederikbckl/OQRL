@@ -16,7 +16,7 @@ def run_train(env_name, num_epochs, seed):
     # Initialize environment
     env = gym.make(env_name, render_mode=None)  # Disable rendering for consistency
     env.reset(seed=seed)  # Seed the environment at creation
-    env.action_space.seed(seed)  # Seed the action space
+    # env.action_space.seed(seed)  # Seed the action space
 
     rng = initialize_rng(seed)
 
@@ -43,9 +43,9 @@ def run_train(env_name, num_epochs, seed):
     subset_fraction = 0.05  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
     batch_size = 64
-    subset = dataset.sample(subset_size)
-    max_batches = len(subset)  # since subset already contains the batches
-    max_batches = subset_size // batch_size + int(subset_size % batch_size != 0)
+    # subset = dataset.sample(subset_size)
+    # max_batches = len(subset)  # since subset already contains the batches
+    # max_batches = subset_size // batch_size + int(subset_size % batch_size != 0)
 
     print(f"Total samples: {total_samples}")
     print(f"Subset size: {subset_size}")
@@ -69,7 +69,7 @@ def run_train(env_name, num_epochs, seed):
         print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
-        last_logged_percentage = 0
+        # last_logged_percentage = 0
         processed_samples = 0
 
         # Process dataset in batches instead of single samples
@@ -139,7 +139,7 @@ def run_train(env_name, num_epochs, seed):
 
             # NEW: might be dead code but worth a try. Delete if not needed
             # Ensure that actions are moved to the correct device before calling agent.update
-            actions = torch.tensor(actions).to(device)
+            # actions = torch.tensor(actions).to(device)
 
             # Update agent
             agent.update()
@@ -150,7 +150,7 @@ def run_train(env_name, num_epochs, seed):
 
             # Accumulate total samples processed
             processed_samples += len(states)
-            current_percentage = (processed_samples / total_samples) * 100
+            # current_percentage = (processed_samples / total_samples) * 100
 
             log_interval = 10  # every 10% of the subset
             subset_log_step = math.ceil(subset_size * log_interval / 100)
@@ -169,8 +169,8 @@ def run_train(env_name, num_epochs, seed):
             batch_idx += 1
 
         reward_history.append(epoch_reward)
-        print(f"Epoch {epoch + 1} completed. Total Reward = {epoch_reward:.2f}")
-        print(f"Dataset interactions in Epoch {epoch+1}: {agent.optimizer.interaction_count}")
+        print(f"\nEpoch {epoch + 1} completed. Total Reward = {epoch_reward:.2f}")
+        print(f"Dataset interactions in Epoch {epoch+1}: {agent.optimizer.interaction_count}\n")
 
         # Testing the agent
         print(f"Starting evaluation for Epoch {epoch + 1}...")

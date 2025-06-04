@@ -164,6 +164,6 @@ class DQNAgent:
         # Run GA optimization only every N updates
         if self.update_counter % self.update_frequency == 0:
             print(
-                f"[UPDATE] Performing {self.optimizer} optimization at batch {self.update_counter}",
+                f"[\nOPTIM] Performing {self.optimizer} optimization at batch {self.update_counter}\n",
             )
             self.optimizer.optimize(loss_fn, batch)

@@ -13,10 +13,11 @@ class OfflineDataset:
             raise RuntimeError(f"Failed to load dataset: {e}")
         self.rng = rng or np.random.default_rng()
 
-        print(
-            "\nShape of observations before squeezing:",
-            np.array(self.file["observations"]).shape,
-        )
+        # print(
+        #     "\nShape of observations before squeezing:",
+        #     np.array(self.file["observations"]).shape,
+        # )
+
         # if statement necessary for different dataset shapes
         if np.array(self.file["observations"]).shape == (100000, 4):
             self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
