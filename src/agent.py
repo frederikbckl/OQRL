@@ -72,8 +72,8 @@ class DQNAgent:
         gamma,
         replay_capacity,
         batch_size,
-        vqc_layers=2,
-        rng=None,
+        vqc_layers,
+        rng,
     ):
         self.obs_dim = obs_dim
         self.act_dim = act_dim
