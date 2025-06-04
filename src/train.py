@@ -42,10 +42,7 @@ def run_train(env_name, num_epochs, seed):
     reward_history = []
     subset_fraction = 0.05  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
-    batch_size = 64
-    # subset = dataset.sample(subset_size)
-    # max_batches = len(subset)  # since subset already contains the batches
-    # max_batches = subset_size // batch_size + int(subset_size % batch_size != 0)
+    # batch_size = 64
 
     print(f"Total samples: {total_samples}")
     print(f"Subset size: {subset_size}")
