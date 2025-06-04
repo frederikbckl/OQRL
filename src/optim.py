@@ -17,6 +17,10 @@ class BaseOptimizer(ABC):
     def optimize(self, loss_fn, batch):
         """Run full optimization loop."""
 
+    @abstractmethod
+    def step(self, loss_fn, batch):
+        """Optional: One optimization step per batch."""
+
 
 class GAOptimizer(BaseOptimizer):
     def __init__(
@@ -232,6 +236,10 @@ class GAOptimizer(BaseOptimizer):
                 param.data.copy_(best_param)
         else:
             print("Warning: best_individual is None. Skipping weight update.")
+
+    def step(self, loss_fn, batch):
+        # GA does not use per-batch step
+        pass
 
     # def elitism(self, elite_size=2):
     #     """Preserve the best individuals."""
