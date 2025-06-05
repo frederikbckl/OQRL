@@ -4,6 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
+from config import BATCH_SIZE
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience, device, initialize_rng
@@ -16,10 +17,7 @@ def run_train(env_name, num_epochs, seed):
     # Initialize environment
     env = gym.make(env_name, render_mode=None)  # Disable rendering for consistency
     env.reset(seed=seed)  # Seed the environment at creation
-    env.action_space.seed(seed)  # Seed the action space
-
-    # Set device (either cuda if available, else cpu)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # env.action_space.seed(seed)  # Seed the action space
 
     rng = initialize_rng(seed)
 
@@ -30,7 +28,7 @@ def run_train(env_name, num_epochs, seed):
         learning_rate=0.001,
         gamma=0.99,
         replay_capacity=10000,
-        batch_size=64,
+        batch_size=BATCH_SIZE,
         vqc_layers=2,
         rng=rng,
     )
@@ -45,10 +43,7 @@ def run_train(env_name, num_epochs, seed):
     reward_history = []
     subset_fraction = 0.05  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
-    batch_size = 64
-    subset = dataset.sample(subset_size)
-    max_batches = len(subset)  # since subset already contains the batches
-    max_batches = subset_size // batch_size + int(subset_size % batch_size != 0)
+    batch_size = BATCH_SIZE
 
     print(f"Total samples: {total_samples}")
     print(f"Subset size: {subset_size}")
@@ -72,7 +67,7 @@ def run_train(env_name, num_epochs, seed):
         print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
-        last_logged_percentage = 0
+        # last_logged_percentage = 0
         processed_samples = 0
 
         # Process dataset in batches instead of single samples
@@ -122,18 +117,11 @@ def run_train(env_name, num_epochs, seed):
             ]
 
             # Move each tensor in the batch to the appropriate device
-            # print(f"States device before: {states.device}")
             states = torch.stack(states).to(device)
-            # print(f"States device after moving to device: {states.device}")
-            # print(f"Actions device before: {actions.device}")
             actions = torch.stack(actions).to(device)
-            # print(f"Actions device after moving to device: {actions.device}")
             rewards = torch.stack(rewards).to(device)
-            # print(f"Rewards device after moving to device: {rewards.device}")
             next_states = torch.stack(next_states).to(device)
-            # print(f"Next states device after moving to device: {next_states.device}")
             terminals = torch.stack(terminals).to(device)
-            # print(f"Terminals device after moving to device: {terminals.device}")
 
             # Store in replay memory and move tensors to the appropriate device
             for j in range(len(states)):
@@ -147,15 +135,9 @@ def run_train(env_name, num_epochs, seed):
                     ),
                 )
 
-            # Update agent using GAOptimizer
-            # def loss_fn(q, target):
-            #     return torch.nn.functional.mse_loss(q, target)
-
-            # (f"Processing batch {batch_idx}/{max_batches} with {len(batch[0])} samples...",)
-
             # NEW: might be dead code but worth a try. Delete if not needed
             # Ensure that actions are moved to the correct device before calling agent.update
-            actions = torch.tensor(actions).to(device)
+            # actions = torch.tensor(actions).to(device)
 
             # Update agent
             agent.update()
@@ -166,7 +148,7 @@ def run_train(env_name, num_epochs, seed):
 
             # Accumulate total samples processed
             processed_samples += len(states)
-            current_percentage = (processed_samples / total_samples) * 100
+            # current_percentage = (processed_samples / total_samples) * 100
 
             log_interval = 10  # every 10% of the subset
             subset_log_step = math.ceil(subset_size * log_interval / 100)
@@ -185,8 +167,8 @@ def run_train(env_name, num_epochs, seed):
             batch_idx += 1
 
         reward_history.append(epoch_reward)
-        print(f"Epoch {epoch + 1} completed. Total Reward = {epoch_reward:.2f}")
-        print(f"Dataset interactions in Epoch {epoch+1}: {agent.optimizer.interaction_count}")
+        print(f"\nEpoch {epoch + 1} completed. Total Reward = {epoch_reward:.2f}")
+        print(f"Dataset interactions in Epoch {epoch+1}: {agent.optimizer.interaction_count}\n")
 
         # Testing the agent
         print(f"Starting evaluation for Epoch {epoch + 1}...")
@@ -194,7 +176,6 @@ def run_train(env_name, num_epochs, seed):
         num_episodes = 25  # Number of episodes for evaluation
         for episode in range(num_episodes):
             state = env.reset(seed=seed + episode)[0]  # new: seeded env.reset
-            # state = env.reset()[0] #old: random env.reset
             done = False
             episode_reward = 0
             while not done:

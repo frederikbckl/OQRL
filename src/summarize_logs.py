@@ -8,7 +8,6 @@ LOGS_FOLDER = "../logs"
 average_reward_pattern = re.compile(r"Average Reward:\s+([0-9\.]+)")
 
 # Initialize results: will hold tuples of (job_id, seed, status, avg_reward)
-
 results = []
 
 # Go through all log files
@@ -23,7 +22,6 @@ for filename in os.listdir(LOGS_FOLDER):
         else:
             job_id = int(parts[1])
             seed = -1  # Unknown seed
-        # job_id = filename.split("_")[1].replace(".txt", "")
 
         try:
             with open(filepath) as f:

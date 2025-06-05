@@ -13,11 +13,12 @@ class OfflineDataset:
             raise RuntimeError(f"Failed to load dataset: {e}")
         self.rng = rng or np.random.default_rng()
 
-        print(
-            "\nShape of observations before squeezing:",
-            np.array(self.file["observations"]).shape,
-        )
-        # if statement for different dataset shapes
+        # print(
+        #     "\nShape of observations before squeezing:",
+        #     np.array(self.file["observations"]).shape,
+        # )
+
+        # if statement necessary for different dataset shapes
         if np.array(self.file["observations"]).shape == (100000, 4):
             self.observations = np.array(self.file["observations"])  # Shape (100000, 4)
             self.actions = np.array(self.file["actions"])  # Adjust if needed
@@ -52,33 +53,9 @@ class OfflineDataset:
                 self.terminals[i],
             )
 
-    def get_batch(self, batch_size):
-        """Get a seeded batch of data."""
-        indices = self.rng.integers(0, self.size, size=batch_size)
-        # indices = np.random.randint(0, self.size, size=batch_size)
-        return (
-            self.observations[indices],
-            self.actions[indices],
-            self.rewards[indices],
-            self.next_observations[indices],
-            self.terminals[indices],
-        )
-
-    def get_batches(self, batch_size):
-        """Generator that yields batches of experiences sequentially."""
-        for i in range(0, self.size, batch_size):
-            yield (
-                self.observations[i : i + batch_size],
-                self.actions[i : i + batch_size],
-                self.rewards[i : i + batch_size],
-                self.next_observations[i : i + batch_size],
-                self.terminals[i : i + batch_size],
-            )
-
     def sample(self, size):
         """Sample a seeded subset of the dataset."""
         indices = self.rng.choice(self.size, size=size, replace=False)
-        # indices = np.random.choice(self.size, size, replace=False)
 
         observations = self.observations[indices]
         actions = self.actions[indices]
