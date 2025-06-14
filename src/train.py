@@ -4,7 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
-from config import BATCH_SIZE
+from config import BATCH_SIZE, POLICY_UPDATE_FREQUENCY, TARGET_UPDATE_FREQUENCY
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience, device, initialize_rng

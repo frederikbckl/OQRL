@@ -77,7 +77,7 @@ class DQNAgent:
         target_update_frequency,
         vqc_layers,
         rng,
-    )
+    ):
         self.obs_dim = obs_dim
         self.act_dim = act_dim
         self.gamma = gamma
@@ -171,3 +171,6 @@ class DQNAgent:
                 f"\n[OPTIM] Performing {self.optimizer} optimization at batch {self.update_counter}",
             )
             self.optimizer.optimize(loss_fn, batch)
+
+        if self.update_counter % self.target_update_frequency == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
