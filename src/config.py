@@ -2,6 +2,7 @@
 
 # General
 BATCH_SIZE = 16
+UPDATE_FREQUENCY = 16  # optimize every x updates
 
 # Genetic Algorithm
 POPULATION_SIZE = 25

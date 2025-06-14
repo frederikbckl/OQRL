@@ -4,7 +4,7 @@ import gymnasium as gym
 import torch
 
 from agent import DQNAgent
-from config import BATCH_SIZE
+from config import BATCH_SIZE, UPDATE_FREQUENCY
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience, device, initialize_rng
@@ -17,7 +17,6 @@ def run_train(env_name, num_epochs, seed):
     # Initialize environment
     env = gym.make(env_name, render_mode=None)  # Disable rendering for consistency
     env.reset(seed=seed)  # Seed the environment at creation
-    # env.action_space.seed(seed)  # Seed the action space
 
     rng = initialize_rng(seed)
 
@@ -29,6 +28,7 @@ def run_train(env_name, num_epochs, seed):
         gamma=0.99,
         replay_capacity=10000,
         batch_size=BATCH_SIZE,
+        update_frequency=UPDATE_FREQUENCY,
         vqc_layers=2,
         rng=rng,
     )

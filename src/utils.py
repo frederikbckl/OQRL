@@ -41,6 +41,7 @@ class Experience:
     #     self.terminated = torch.tensor(terminated, dtype=torch.float32)
 
 
+# NEW ReplayMemory
 class ReplayMemory:
     """Replay memory for storing transitions."""
 
@@ -48,12 +49,21 @@ class ReplayMemory:
         self.memory = deque(maxlen=capacity)
         self.rng = rng
 
-    def push(self, experience: Experience):
+    def push(self, experience):
         self.memory.append(experience)
 
-    def sample(self, batch_size):
-        # seeded sample function
-        indices = self.rng.choice(len(self.memory), batch_size, replace=False)
+    def sample(self, batch_size, prioritized=True):
+        if not prioritized:
+            indices = self.rng.choice(len(self.memory), batch_size, replace=False)
+        else:
+            # Reward-prioritized sampling
+            rewards = np.array(
+                [exp[2] for exp in self.memory]
+            )  # assuming experience = (s, a, r, s', done)
+            rewards = rewards - rewards.min()  # normalize rewards to be non-negative
+            probabilities = rewards / rewards.sum()
+            indices = self.rng.choice(len(self.memory), batch_size, replace=False, p=probabilities)
+
         return [self.memory[i] for i in indices]
 
     def __len__(self):

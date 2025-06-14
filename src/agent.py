@@ -30,6 +30,7 @@ class VQC(nn.Module):
         init_values = self.rng.random(n_layers * input_dim * 3).astype(np.float32)
         self.params = nn.Parameter(torch.tensor(init_values), requires_grad=False)
 
+        # creating the quantum device and QNode
         self.dev = qml.device("default.qubit", wires=input_dim, shots=None)  # deterministic mode
         self.qnode = qml.QNode(self._circuit, self.dev, interface="torch")
 
@@ -72,6 +73,7 @@ class DQNAgent:
         gamma,
         replay_capacity,
         batch_size,
+        update_frequency,
         vqc_layers,
         rng,
     ):
@@ -79,11 +81,11 @@ class DQNAgent:
         self.act_dim = act_dim
         self.gamma = gamma
         self.batch_size = batch_size
+        self.update_frequency = update_frequency  # optimize every X updates
         self.replay_capacity = replay_capacity
         self.device = device
         self.rng = rng or np.random.default_rng()
         self.update_counter = 0  # track how many times update() was called
-        self.update_frequency = 16  # optimize every X updates
 
         # Initialize VQC policy network
         self.policy_net = VQC(obs_dim, act_dim, n_layers=vqc_layers, rng=rng).to(self.device)
