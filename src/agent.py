@@ -81,7 +81,8 @@ class DQNAgent:
         self.act_dim = act_dim
         self.gamma = gamma
         self.batch_size = batch_size
-        self.update_frequency = update_frequency  # optimize every X updates
+        self.policy_update_frequency = policy_update_frequency  # optimize every X updates
+        self.target_update_frequency = target_update_frequency  # update target net every X updates
         self.replay_capacity = replay_capacity
         self.device = device
         self.rng = rng or np.random.default_rng()

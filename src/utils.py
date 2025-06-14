@@ -58,7 +58,7 @@ class ReplayMemory:
         else:
             # Reward-prioritized sampling
             rewards = np.array(
-                [exp[2] for exp in self.memory]
+                [exp.reward for exp in self.memory],
             )  # assuming experience = (s, a, r, s', done)
             rewards = rewards - rewards.min()  # normalize rewards to be non-negative
             probabilities = rewards / rewards.sum()
