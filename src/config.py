@@ -1,8 +1,8 @@
 """Experiment configuration."""
 
 # General
-BATCH_SIZE = 4
-POLICY_UPDATE_FREQUENCY = 4  # optimize every x updates
+BATCH_SIZE = 16
+POLICY_UPDATE_FREQUENCY = 16  # optimize every x updates
 TARGET_UPDATE_FREQUENCY = 100  # update target net every x updates
 
 # Genetic Algorithm
