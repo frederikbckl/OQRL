@@ -73,10 +73,11 @@ class DQNAgent:
         gamma,
         replay_capacity,
         batch_size,
-        update_frequency,
+        policy_update_frequency,
+        target_update_frequency,
         vqc_layers,
         rng,
-    ):
+    )
         self.obs_dim = obs_dim
         self.act_dim = act_dim
         self.gamma = gamma
@@ -165,7 +166,7 @@ class DQNAgent:
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
 
         # Run GA optimization only every N updates
-        if self.update_counter % self.update_frequency == 0:
+        if self.update_counter % self.policy_update_frequency == 0:
             print(
                 f"\n[OPTIM] Performing {self.optimizer} optimization at batch {self.update_counter}",
             )
