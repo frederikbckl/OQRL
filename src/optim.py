@@ -159,13 +159,6 @@ class GAOptimizer(BaseOptimizer):
         if model_output.device != actions.device:
             model_output = model_output.to(actions.device)
 
-        # NEW START: using new loss_fn
-        # fitness = loss_fn()
-        # self.interaction_count += len(batch)
-        # return fitness
-        # NEW END
-
-        # OLD START: without using loss_fn
         q_values = model_output.gather(
             1,
             actions.view(-1, 1),
@@ -173,8 +166,6 @@ class GAOptimizer(BaseOptimizer):
 
         with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0]  # use frozen target_net
-
-        # next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
 
         targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
             device,
