@@ -4,7 +4,7 @@
 BATCH_SIZE = 64
 POLICY_UPDATE_FREQUENCY = 64  # optimize every x updates
 TARGET_UPDATE_FREQUENCY = 128  # update target net every x updates
-MAX_INTERACTIONS = 32000  # training budget
+MAX_INTERACTIONS = 3200  # training budget
 
 # Genetic Algorithm
 POPULATION_SIZE = 25
