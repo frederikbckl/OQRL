@@ -171,14 +171,21 @@ class DQNAgent:
 
         # NEW loss_fn: re-runs a full forward & target-calc
         def loss_fn():
+            # move everything to the right device
+            s = states.to(self.device)
+            a = actions.unsqueeze(1).to(self.device)
+            ns = next_states.to(self.device)
+            r = rewards.to(self.device)
+            t = terminals.to(self.device)
+
             # forward pass under the current policy_net weights
-            preds = self.policy_net(states)
+            preds = self.policy_net(s)
             # pick out the taken actions
-            q_vals = preds.gather(1, actions.unsqueeze(1).to(self.device))
+            q_vals = preds.gather(1, a.unsqueeze(1).to(self.device))
             # compute targets with the (frozen) target_net
             with torch.no_grad():
-                next_q = self.target_net(next_states).max(1)[0]
-            targs = rewards + (1 - terminals) * self.gamma * next_q
+                next_q = self.target_net(ns).max(1)[0]
+            targs = r + (1 - t) * self.gamma * next_q
             targs = targs.unsqueeze(1)  # match q_vals’s shape
             # return the MSE
             return torch.nn.functional.mse_loss(q_vals, targs).item()
