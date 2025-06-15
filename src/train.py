@@ -42,7 +42,7 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path, rng=rng)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.1  # Fraction of the dataset to use for training
+    subset_fraction = 0.05  # Fraction of the dataset to use for training
     subset_size = int(total_samples * subset_fraction)
     batch_size = BATCH_SIZE
 
@@ -56,10 +56,13 @@ def run_train(env_name, num_epochs, seed):
         print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
         print("--------------------------------\n")
 
+        # sync target network with policy network
+        agent.target_net.load_state_dict(agent.policy_net.state_dict())
+
         # Reset update_counter
         agent.update_counter = 0
 
-        print(f"Max batches this epoch: {subset_size // batch_size}")
+        # print(f"Max batches this epoch: {subset_size // batch_size}")
 
         # Sample a fresh subset from the full dataset
         subset = dataset.sample(subset_size)
