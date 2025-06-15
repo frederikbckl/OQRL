@@ -1,8 +1,8 @@
 """Experiment configuration."""
 
 # General
-BATCH_SIZE = 64
-POLICY_UPDATE_FREQUENCY = 64  # optimize every x updates
+BATCH_SIZE = 8
+POLICY_UPDATE_FREQUENCY = 8  # optimize every x updates
 TARGET_UPDATE_FREQUENCY = 128  # update target net every x updates
 MAX_INTERACTIONS = 100000  # training budget
 
