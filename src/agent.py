@@ -169,8 +169,22 @@ class DQNAgent:
         bellman_loss = torch.nn.functional.mse_loss(q_values, targets)
         print(f"[TRAIN] Update {self.update_counter:4d}  Bellman MSE: {bellman_loss.item():.6f}")
 
-        # Define the loss function for metaheuristic optimization
-        loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
+        # NEW loss_fn: re-runs a full forward & target-calc
+        def loss_fn():
+            # forward pass under the current policy_net weights
+            preds = self.policy_net(states)
+            # pick out the taken actions
+            q_vals = preds.gather(1, actions.unsqueeze(1).to(self.device))
+            # compute targets with the (frozen) target_net
+            with torch.no_grad():
+                next_q = self.target_net(next_states).max(1)[0]
+            targs = rewards + (1 - terminals) * self.gamma * next_q
+            targs = targs.unsqueeze(1)  # match q_vals’s shape
+            # return the MSE
+            return torch.nn.functional.mse_loss(q_vals, targs).item()
+
+        # OLD loss_fn for metaheuristic optimization
+        # loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
 
         # Run GA optimization only every N updates
         if self.update_counter % self.policy_update_frequency == 0:
