@@ -155,10 +155,10 @@ def run_train(env_name, num_epochs, seed):
             # Accumulate total samples processed
             processed_samples += len(states)
 
-            if hasattr(agent.optimizer, "interaction_count"):
-                print(
-                    f"[Interaction Log] Total counted dataset interactions so far: {agent.optimizer.interaction_count}",
-                )
+            # if hasattr(agent.optimizer, "interaction_count"):
+            #     print(
+            #         f"[Interaction Log] Total counted dataset interactions so far: {agent.optimizer.interaction_count}",
+            #     )
 
             batch_idx += 1
 
