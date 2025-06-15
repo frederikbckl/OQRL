@@ -1,10 +1,8 @@
-import math
-
 import gymnasium as gym
 import torch
 
 from agent import DQNAgent
-from config import BATCH_SIZE, POLICY_UPDATE_FREQUENCY, TARGET_UPDATE_FREQUENCY
+from config import BATCH_SIZE, MAX_INTERACTIONS, POLICY_UPDATE_FREQUENCY, TARGET_UPDATE_FREQUENCY
 from dataset import OfflineDataset
 from optim import GAOptimizer  # Import GAOptimizer
 from utils import Experience, device, initialize_rng
@@ -49,13 +47,15 @@ def run_train(env_name, num_epochs, seed):
     dataset = OfflineDataset(dataset_path, rng=rng)
     total_samples = dataset.size
     reward_history = []
-    subset_fraction = 0.05  # Fraction of the dataset to use for training
-    subset_size = int(total_samples * subset_fraction)
+    # subset_fraction = 0.05  # Fraction of the dataset to use for training
+    # subset_size = int(total_samples * subset_fraction)
     batch_size = BATCH_SIZE
+    interaction_count_train = 0
+    max_interactions = MAX_INTERACTIONS
 
     print(f"Total samples: {total_samples}")
-    print(f"Subset size: {subset_size}")
-    print(f"Max batches this epoch: {subset_size // batch_size}")
+    # print(f"Subset size: {subset_size}")
+    # print(f"Max batches this epoch: {subset_size // batch_size}")
 
     # Training loop
     for epoch in range(num_epochs):
@@ -75,21 +75,25 @@ def run_train(env_name, num_epochs, seed):
         # print(f"Max batches this epoch: {subset_size // batch_size}")
 
         # Sample a fresh subset from the full dataset
-        subset = dataset.sample(subset_size)
-        print(f"Sampled {len(subset)} experiences for this epoch.")
+        # subset = dataset.sample(subset_size)
+        # print(f"Sampled {len(subset)} experiences for this epoch.")
 
-        print(f"Dataset size used for training: {subset_size}")
+        # print(f"Dataset size used for training: {subset_size}")
         epoch_reward = 0
         batch_idx = 1
         # last_logged_percentage = 0
         processed_samples = 0
 
-        # Process dataset in batches instead of single samples
-
-        for step, batch_start in enumerate(range(0, len(subset), batch_size), start=1):
-            batch = subset[batch_start : batch_start + batch_size]
+        while agent.optimizer.interaction_count < max_interactions:
+            batch = dataset.sample(batch_size)
             if len(batch) == 0:
                 continue
+
+            # Process dataset in batches instead of single samples
+            # for step, batch_start in enumerate(range(0, len(subset), batch_size), start=1):
+            # batch = subset[batch_start : batch_start + batch_size]
+            # if len(batch) == 0:
+            #     continue
 
             # Process batch
             states, actions, rewards, next_states, terminals = zip(*batch)
@@ -154,7 +158,7 @@ def run_train(env_name, num_epochs, seed):
             # actions = torch.tensor(actions).to(device)
 
             # Update agent
-            agent.update()
+            loss = agent.update()
 
             # Accumulate rewards (for the epoch)
             batch_reward = sum(rewards)
@@ -164,19 +168,19 @@ def run_train(env_name, num_epochs, seed):
             processed_samples += len(states)
             # current_percentage = (processed_samples / total_samples) * 100
 
-            log_interval = 10  # every 10% of the subset
-            subset_log_step = math.ceil(subset_size * log_interval / 100)
+            # log_interval = 10  # every 10% of the subset
+            # subset_log_step = math.ceil(subset_size * log_interval / 100)
 
-            if processed_samples % subset_log_step < batch_size:
+            # if processed_samples % subset_log_step < batch_size:
+            #     print(
+            #         f"Processed {processed_samples}/{subset_size} samples "
+            #         f"({(processed_samples / subset_size) * 100:.1f}%) of current subset",
+            #     )
+            # Log dataset interactions after update (only if using GAOptimizer, every 10% of subset)
+            if hasattr(agent.optimizer, "interaction_count"):
                 print(
-                    f"Processed {processed_samples}/{subset_size} samples "
-                    f"({(processed_samples / subset_size) * 100:.1f}%) of current subset",
+                    f"[Interaction Log] Total counted dataset interactions so far: {agent.optimizer.interaction_count}",
                 )
-                # Log dataset interactions after update (only if using GAOptimizer, every 10% of subset)
-                if hasattr(agent.optimizer, "interaction_count"):
-                    print(
-                        f"[Interaction Log] Total counted dataset interactions so far: {agent.optimizer.interaction_count}",
-                    )
 
             batch_idx += 1
 
