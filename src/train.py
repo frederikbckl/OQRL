@@ -35,7 +35,16 @@ def run_train(env_name, num_epochs, seed):
     )
 
     # Replace the optimizer with respective Metaheuristic Optimizer
-    agent.optimizer = GAOptimizer(agent.policy_net, rng=rng)
+    # OLD
+    # agent.optimizer = GAOptimizer(agent.policy_net, rng=rng)
+
+    # NEW
+    agent.optimizer = GAOptimizer(
+        model=agent.policy_net,
+        target_net=agent.target_net,
+        gamma=agent.gamma,
+        rng=rng,
+    )
 
     # Load dataset
     dataset_path = "offline_cartpole_v2.hdf5"
