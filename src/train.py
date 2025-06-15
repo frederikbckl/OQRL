@@ -50,7 +50,6 @@ def run_train(env_name, num_epochs, seed):
     # subset_fraction = 0.05  # Fraction of the dataset to use for training
     # subset_size = int(total_samples * subset_fraction)
     batch_size = BATCH_SIZE
-    interaction_count_train = 0
     max_interactions = MAX_INTERACTIONS
 
     print(f"Total samples: {total_samples}")
