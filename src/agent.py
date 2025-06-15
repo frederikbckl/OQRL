@@ -162,6 +162,13 @@ class DQNAgent:
             device,
         )
 
+        # to make targets same shape as q_values
+        targets = targets.unsqueeze(1)
+
+        # Bellman error / MSE loss
+        bellman_loss = torch.nn.functional.mse_loss(q_values, targets)
+        print(f"[TRAIN] Update {self.update_counter:4d}  Bellman MSE: {bellman_loss.item():.6f}")
+
         # Define the loss function for metaheuristic optimization
         loss_fn = lambda: torch.nn.functional.mse_loss(q_values, targets).item()
 
