@@ -172,11 +172,11 @@ class DQNAgent:
             )
             self.optimizer.optimize(loss_fn, batch)
 
-        if self.update_counter % self.target_update_frequency == 0:
-            print(
-                f"\n[TARGET] Updating target network at batch {self.update_counter}",
-            )
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-            print(
-                f"\n[TARGET] Target network was updated at batch {self.update_counter}",
-            )
+        # if self.update_counter % self.target_update_frequency == 0:
+        #     print(
+        #         f"\n[TARGET] Updating target network at batch {self.update_counter}",
+        #     )
+        #     self.target_net.load_state_dict(self.policy_net.state_dict())
+        #     print(
+        #         f"\n[TARGET] Target network was updated at batch {self.update_counter}",
+        #     )

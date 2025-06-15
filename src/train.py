@@ -56,11 +56,14 @@ def run_train(env_name, num_epochs, seed):
         print(f"Epoch {epoch + 1}/{num_epochs} started...")  # Start of the epoch
         print("--------------------------------\n")
 
-        # sync target network with policy network
-        agent.target_net.load_state_dict(agent.policy_net.state_dict())
-
         # Reset update_counter
         agent.update_counter = 0
+
+        # sync target network with policy network
+        print(
+            f"\n[TARGET] Updating target network at batch {agent.update_counter}",
+        )
+        agent.target_net.load_state_dict(agent.policy_net.state_dict())
 
         # print(f"Max batches this epoch: {subset_size // batch_size}")
 
