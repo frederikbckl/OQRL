@@ -4,14 +4,14 @@
 BATCH_SIZE = 16
 POLICY_UPDATE_FREQUENCY = 16  # optimize every x updates
 TARGET_UPDATE_FREQUENCY = 256  # update target net every x updates
-MAX_INTERACTIONS = 256000  # training budget
+MAX_INTERACTIONS = 512000  # training budget
 
 # Genetic Algorithm
-POPULATION_SIZE = 50
-NUM_GENERATIONS = 20
+POPULATION_SIZE = 64
+NUM_GENERATIONS = 25
 MUTATION_RATE = 0.1
 CROSSOVER_RATE = 0.5
-ELITE_SIZE = 4  # number of elite individuals to keep
+ELITE_SIZE = 8  # number of elite individuals to keep
 
 
 # Replay Memory sampling (prioritized true or false)
