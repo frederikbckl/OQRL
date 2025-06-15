@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import torch
 
-from config import CROSSOVER_RATE, MUTATION_RATE, NUM_GENERATIONS, POPULATION_SIZE
+from config import CROSSOVER_RATE, ELITE_SIZE, MUTATION_RATE, NUM_GENERATIONS, POPULATION_SIZE
 from utils import device
 
 
@@ -31,6 +31,7 @@ class GAOptimizer(BaseOptimizer):
         num_generations=NUM_GENERATIONS,
         mutation_rate=MUTATION_RATE,
         crossover_rate=CROSSOVER_RATE,
+        elite_size=ELITE_SIZE,
         rng=None,
     ):
         super().__init__(model, rng)
@@ -38,6 +39,7 @@ class GAOptimizer(BaseOptimizer):
         self.num_generations = num_generations
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
+        self.elite_size = elite_size
         self.rng = rng or np.random.default_rng()  # Use seeded RNG or fallback if not provided
 
         # self.total_interactions = 0  # calculated interactions
@@ -212,12 +214,10 @@ class GAOptimizer(BaseOptimizer):
             self.population = [self.population[i] for i in sorted_indices]
             self.best_individual = self.population[0]
 
+            elites = self.population[: self.elite_size]  # Keep the best individuals (elitism)
+
             # Generate next generation
-            next_population = self.population[:2]
-            # next_population = sorted(
-            #     self.population,
-            #     key=lambda ind: self._evaluate_fitness(ind, loss_fn, batch),
-            # )[:2]  # Elitism: retain the top 2 individuals
+            next_population = elites.copy()  # Start with elites
 
             while len(next_population) < self.population_size:
                 # New seeded parent selection

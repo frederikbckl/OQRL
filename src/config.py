@@ -1,16 +1,17 @@
 """Experiment configuration."""
 
 # General
-BATCH_SIZE = 64
-POLICY_UPDATE_FREQUENCY = 64  # optimize every x updates
+BATCH_SIZE = 16
+POLICY_UPDATE_FREQUENCY = 16  # optimize every x updates
 TARGET_UPDATE_FREQUENCY = 128  # update target net every x updates
-MAX_INTERACTIONS = 32000  # training budget
+MAX_INTERACTIONS = 64000  # training budget
 
 # Genetic Algorithm
 POPULATION_SIZE = 25
 NUM_GENERATIONS = 10
 MUTATION_RATE = 0.1
 CROSSOVER_RATE = 0.5
+ELITE_SIZE = 2  # number of elite individuals to keep
 
 
 # Replay Memory sampling (prioritized true or false)
