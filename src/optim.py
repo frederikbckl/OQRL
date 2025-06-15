@@ -156,9 +156,9 @@ class GAOptimizer(BaseOptimizer):
             model_output = model_output.to(actions.device)
 
         # NEW START: using new loss_fn
-        fitness = loss_fn()
-        self.interaction_count += len(batch)
-        return fitness
+        # fitness = loss_fn()
+        # self.interaction_count += len(batch)
+        # return fitness
         # NEW END
 
         # OLD START: without using loss_fn
