@@ -181,7 +181,7 @@ class DQNAgent:
             # forward pass under the current policy_net weights
             preds = self.policy_net(s)
             # pick out the taken actions
-            q_vals = preds.gather(1, a.unsqueeze(1).to(self.device))
+            q_vals = preds.gather(1, a.to(self.device))
             # compute targets with the (frozen) target_net
             with torch.no_grad():
                 next_q = self.target_net(ns).max(1)[0]
