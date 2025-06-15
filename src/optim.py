@@ -155,6 +155,13 @@ class GAOptimizer(BaseOptimizer):
         if model_output.device != actions.device:
             model_output = model_output.to(actions.device)
 
+        # NEW START: using new loss_fn
+        fitness = loss_fn()
+        self.interaction_count += len(batch)
+        return fitness
+        # NEW END
+
+        # OLD START: without using loss_fn
         q_values = model_output.gather(
             1,
             actions.view(-1, 1),
@@ -171,6 +178,7 @@ class GAOptimizer(BaseOptimizer):
         self.interaction_count += len(batch)  # or should it be incremented by len(batch)?
 
         return -loss.item()  # Negative loss as fitness (to maximize reward)
+        # OLD END
 
     def _crossover(self, parent1, parent2):
         """Perform crossover between two parents."""
