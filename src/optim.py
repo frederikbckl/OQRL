@@ -27,6 +27,8 @@ class GAOptimizer(BaseOptimizer):
     def __init__(
         self,
         model,
+        target_net,
+        gamma,
         population_size=POPULATION_SIZE,
         num_generations=NUM_GENERATIONS,
         mutation_rate=MUTATION_RATE,
@@ -34,6 +36,8 @@ class GAOptimizer(BaseOptimizer):
         rng=None,
     ):
         super().__init__(model, rng)
+        self.target_net = target_net
+        self.gamma = gamma
         self.population_size = population_size
         self.num_generations = num_generations
         self.mutation_rate = mutation_rate
@@ -166,7 +170,12 @@ class GAOptimizer(BaseOptimizer):
             1,
             actions.view(-1, 1),
         ).squeeze()  # Q-values for selected actions
-        next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
+
+        with torch.no_grad():
+            next_q_values = self.target_net(next_states).max(1)[0]  # use frozen target_net
+
+        # next_q_values = self.model(next_states).max(1)[0].detach()  # Max Q-value for next state
+
         targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
             device,
         )  # Bellman equation
