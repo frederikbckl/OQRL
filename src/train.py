@@ -41,8 +41,6 @@ def run_train(env_name, num_epochs, seed):
     # NEW
     agent.optimizer = GAOptimizer(
         model=agent.policy_net,
-        target_net=agent.target_net,
-        gamma=agent.gamma,
         rng=rng,
     )
 

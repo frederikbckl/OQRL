@@ -102,8 +102,6 @@ class DQNAgent:
 
         self.optimizer = GAOptimizer(
             model=self.policy_net,
-            target_net=self.target_net,
-            gamma=self.gamma,
             rng=rng,
         )
         # self.optimizer = GAOptimizer(model=self.policy_net, rng=rng)
