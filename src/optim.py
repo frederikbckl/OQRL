@@ -64,12 +64,9 @@ class GAOptimizer(BaseOptimizer):
             individual.append(param.data.clone() + 0.1 * noise_tensor)
         return individual
 
-    # NEW _evaluate_fitness
     def _evaluate_fitness(self, individual, loss_fn, batch):
-        """Evaluate the fitness of an individual."""
-        # Load the individual's weights into the model (without these 2 lines, the agent is not learning)
-        # without it, the model would retain the weights of the previous generation (must be updated before each fitness evaluation)
-        # ensures that each fitness evaluation uses the correct weights for the model
+        """Evaluate the fitness of an individual via the provided loss_fn."""
+        # 1) Load this candidate's weights into the policy_net
         for param, ind_param in zip(self.model.parameters(), individual):
             param.data.copy_(ind_param)
 
@@ -115,13 +112,6 @@ class GAOptimizer(BaseOptimizer):
             ],
         ).to(device)
 
-        # Convert to numpy after moving to CPU
-        states_cpu = states.cpu().numpy()
-        actions_cpu = actions.cpu().numpy()
-        rewards_cpu = rewards.cpu().numpy()
-        next_states_cpu = next_states.cpu().numpy()
-        terminals_cpu = terminals.cpu().numpy()
-
         # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
         states = (
             states.clone().detach().to(device)
@@ -153,32 +143,133 @@ class GAOptimizer(BaseOptimizer):
         states = states.to(device)
         actions = actions.to(device)
 
-        model_output = self.model(states.to(device))
-        model_output = model_output.to(device)  # Ensure model output is on the same device
+        # 2) Simply call the loss_fn closure (built in agent.update)
+        #    which will:
+        #      - forward through policy_net
+        #      - bootstrap off your frozen target_net
+        #      - compute Bellman‐MSE
+        fitness = -loss_fn()
 
-        if model_output.device != actions.device:
-            model_output = model_output.to(actions.device)
+        # 3) Account for how many transitions we “touched”
+        self.interaction_count += len(batch)
 
-        q_values = model_output.gather(
-            1,
-            actions.view(-1, 1),
-        ).squeeze()  # Q-values for selected actions
+        return fitness
 
-        with torch.no_grad():
-            next_q_values = self.target_net(next_states).max(1)[0]  # use frozen target_net
+    # OLD _evaluate_fitness
+    # def _evaluate_fitness(self, individual, loss_fn, batch):
+    #     """Evaluate the fitness of an individual."""
+    #     # Load the individual's weights into the model (without these 2 lines, the agent is not learning)
+    #     # without it, the model would retain the weights of the previous generation (must be updated before each fitness evaluation)
+    #     # ensures that each fitness evaluation uses the correct weights for the model
+    #     for param, ind_param in zip(self.model.parameters(), individual):
+    #         param.data.copy_(ind_param)
 
-        targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
-            device,
-        )  # Bellman equation
+    #     # Unpack Experience objects directly
+    #     states = torch.stack(
+    #         [
+    #             exp.obs
+    #             if isinstance(exp.obs, torch.Tensor)
+    #             else torch.tensor(exp.obs, dtype=torch.float32)
+    #             for exp in batch
+    #         ],
+    #     ).to(device)
+    #     actions = torch.stack(
+    #         [
+    #             exp.action
+    #             if isinstance(exp.action, torch.Tensor)
+    #             else torch.tensor(exp.action, dtype=torch.int64)
+    #             for exp in batch
+    #         ],
+    #     ).to(device)
+    #     rewards = torch.stack(
+    #         [
+    #             exp.reward
+    #             if isinstance(exp.reward, torch.Tensor)
+    #             else torch.tensor(exp.reward, dtype=torch.float32)
+    #             for exp in batch
+    #         ],
+    #     ).to(device)
+    #     next_states = torch.stack(
+    #         [
+    #             exp.next_obs
+    #             if isinstance(exp.next_obs, torch.Tensor)
+    #             else torch.tensor(exp.next_obs, dtype=torch.float32)
+    #             for exp in batch
+    #         ],
+    #     ).to(device)
+    #     terminals = torch.stack(
+    #         [
+    #             exp.terminated
+    #             if isinstance(exp.terminated, torch.Tensor)
+    #             else torch.tensor(exp.terminated, dtype=torch.float32)
+    #             for exp in batch
+    #         ],
+    #     ).to(device)
 
-        loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
-        # print(f"Fitness computed: {-loss.item()}")  # Debugging
+    #     # Convert to numpy after moving to CPU
+    #     states_cpu = states.cpu().numpy()
+    #     actions_cpu = actions.cpu().numpy()
+    #     rewards_cpu = rewards.cpu().numpy()
+    #     next_states_cpu = next_states.cpu().numpy()
+    #     terminals_cpu = terminals.cpu().numpy()
 
-        # count interactions with the offline dataset
-        self.interaction_count += len(batch)  # or should it be incremented by len(batch)?
+    #     # Check if data is already a tensor, if so, use .clone().detach(), otherwise convert
+    #     states = (
+    #         states.clone().detach().to(device)
+    #         if isinstance(states, torch.Tensor)
+    #         else torch.tensor(states, dtype=torch.float32).to(device)
+    #     )
+    #     actions = (
+    #         actions.clone().detach().to(device)
+    #         if isinstance(actions, torch.Tensor)
+    #         else torch.tensor(actions, dtype=torch.int64).to(device)
+    #     )
+    #     rewards = (
+    #         rewards.clone().detach().to(device)
+    #         if isinstance(rewards, torch.Tensor)
+    #         else torch.tensor(rewards, dtype=torch.float32).to(device)
+    #     )
+    #     next_states = (
+    #         next_states.clone().detach().to(device)
+    #         if isinstance(next_states, torch.Tensor)
+    #         else torch.tensor(next_states, dtype=torch.float32).to(device)
+    #     )
+    #     terminals = (
+    #         terminals.clone().detach().to(device)
+    #         if isinstance(terminals, torch.Tensor)
+    #         else torch.tensor(terminals, dtype=torch.float32).to(device)
+    #     )
 
-        return -loss.item()  # Negative loss as fitness (to maximize reward)
-        # OLD END
+    #     # ensure actions and states are both on the same device before computing q_values
+    #     states = states.to(device)
+    #     actions = actions.to(device)
+
+    #     model_output = self.model(states.to(device))
+    #     model_output = model_output.to(device)  # Ensure model output is on the same device
+
+    #     if model_output.device != actions.device:
+    #         model_output = model_output.to(actions.device)
+
+    #     q_values = model_output.gather(
+    #         1,
+    #         actions.view(-1, 1),
+    #     ).squeeze()  # Q-values for selected actions
+
+    #     with torch.no_grad():
+    #         next_q_values = self.target_net(next_states).max(1)[0]  # use frozen target_net
+
+    #     targets = rewards.to(device) + (1 - terminals.to(device)) * 0.99 * next_q_values.to(
+    #         device,
+    #     )  # Bellman equation
+
+    #     loss = torch.nn.functional.mse_loss(q_values, targets)  # Compute MSE loss
+    #     # print(f"Fitness computed: {-loss.item()}")  # Debugging
+
+    #     # count interactions with the offline dataset
+    #     self.interaction_count += len(batch)  # or should it be incremented by len(batch)?
+
+    #     return -loss.item()  # Negative loss as fitness (to maximize reward)
+    #     # OLD END
 
     def _crossover(self, parent1, parent2):
         """Perform crossover between two parents."""
