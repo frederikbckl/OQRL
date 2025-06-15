@@ -11,6 +11,9 @@ NUM_GENERATIONS = 10
 MUTATION_RATE = 0.1
 CROSSOVER_RATE = 0.5
 
+
+# Replay Memory sampling (prioritized true or false)
+
 # further optimizers
 
 # further options:

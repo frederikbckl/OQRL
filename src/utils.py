@@ -58,11 +58,22 @@ class ReplayMemory:
         else:
             # Reward-prioritized sampling
             rewards = np.array(
-                [exp.reward.cpu().item() for exp in self.memory]
-            )  # assuming experience = (s, a, r, s', done)
-            rewards = rewards - rewards.min()  # normalize rewards to be non-negative
-            probabilities = rewards / rewards.sum()
-            indices = self.rng.choice(len(self.memory), batch_size, replace=False, p=probabilities)
+                [
+                    exp.reward.cpu().item() if hasattr(exp.reward, "cpu") else exp.reward
+                    for exp in self.memory
+                ]
+            )
+            rewards = rewards - np.min(rewards) + 1e-6  # shift to positive
+
+            total = rewards.sum()
+            if total == 0 or np.isnan(total):
+                # fallback to uniform sampling
+                indices = self.rng.choice(len(self.memory), batch_size, replace=False)
+            else:
+                probabilities = rewards / total
+                indices = self.rng.choice(
+                    len(self.memory), batch_size, replace=False, p=probabilities
+                )
 
         return [self.memory[i] for i in indices]
 
